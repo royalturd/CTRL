@@ -80,7 +80,7 @@ def reply_afk(update, context):
         check_afk(bot, update, user_id, fst_name)
 
 
-def check_afk(update, context):
+def check_afk(update, context, user_id, fst_name):
     chat = update.effective_chat  # type: Optional[Chat]
     if sql.is_afk(user_id):
         user = sql.check_afk_status(user_id)
