@@ -17,7 +17,7 @@ AFK_REPLY_GROUP = 8
 
 
 @run_async
-def afk(bot: Bot, update: Update):
+def afk(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     args = update.effective_message.text.split(None, 1)
     if len(args) >= 2:
@@ -31,7 +31,7 @@ def afk(bot: Bot, update: Update):
 
 
 @run_async
-def no_longer_afk(bot: Bot, update: Update):
+def no_longer_afk(update, context):
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -48,7 +48,7 @@ def no_longer_afk(bot: Bot, update: Update):
 
 
 @run_async
-def reply_afk(bot: Bot, update: Update):
+def reply_afk(update, context):
     message = update.effective_message  # type: Optional[Message]
     if message.entities and message.parse_entities([MessageEntity.TEXT_MENTION, MessageEntity.MENTION]):
         entities = message.parse_entities([MessageEntity.TEXT_MENTION, MessageEntity.MENTION])
@@ -63,7 +63,7 @@ def reply_afk(bot: Bot, update: Update):
                     # Should never happen, since for a user to become AFK they must have spoken. Maybe changed username?
                     return
                 try:
-                    chat = bot.get_chat(user_id)
+                    chat = context.bot.get_chat(user_id)
                 except BadRequest:
                     print("Error: Could not fetch userid {} for AFK module".format(user_id))
                     return
@@ -80,7 +80,7 @@ def reply_afk(bot: Bot, update: Update):
         check_afk(bot, update, user_id, fst_name)
 
 
-def check_afk(bot, update, user_id, fst_name):
+def check_afk(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     if sql.is_afk(user_id):
         user = sql.check_afk_status(user_id)
