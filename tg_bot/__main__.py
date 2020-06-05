@@ -115,7 +115,7 @@ def send_help(chat_id, text, keyboard=None):
 
 
 @run_async
-def test(bot: Bot, update: Update):
+def test(update, context):
     # pprint(eval(str(update)))
     # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
     update.effective_message.reply_text("This person edited a message")
@@ -123,7 +123,7 @@ def test(bot: Bot, update: Update):
 
 
 @run_async
-def start(bot: Bot, update: Update, args: List[str]):
+def start(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message
     query = update.callback_query
@@ -190,40 +190,30 @@ def send_start(bot, update):
 
 
 # for test purposes
-def error_callback(bot, update, error):
+def error_callback(update, context):
     try:
-        raise error
+        raise context.error
     except Unauthorized:
-        print("no nono1")
-        print(error)
         # remove update.message.chat_id from conversation list
+        LOGGER.exception('Update "%s" caused error "%s"', update, context.error)
     except BadRequest:
-        print("no nono2")
-        print("BadRequest caught")
-        print(error)
-
         # handle malformed requests - read more below!
+        LOGGER.exception('Update "%s" caused error "%s"', update, context.error)
     except TimedOut:
-        print("no nono3")
         # handle slow connection problems
+        LOGGER.exception('Update "%s" caused error "%s"', update, context.error)
     except NetworkError:
-        print("no nono4")
         # handle other connection problems
-    except ChatMigrated as err:
-        print("no nono5")
-        print(err)
+        LOGGER.exception('Update "%s" caused error "%s"', update, context.error)
+    except ChatMigrated as e:
         # the chat_id of a group has changed, use e.new_chat_id instead
+        LOGGER.exception('Update "%s" caused error "%s"', update, context.error)
     except TelegramError:
-        print(error)
         # handle all other telegram related errors
-
-
-
-
-
+        LOGGER.exception('Update "%s" caused error "%s"', update, context.error)
 
 @run_async
-def help_button(bot: Bot, update: Update):
+def help_button(update, context):
     query = update.callback_query
     mod_match = re.match(r"help_module\((.+?)\)", query.data)
     prev_match = re.match(r"help_prev\((.+?)\)", query.data)
@@ -259,9 +249,9 @@ def help_button(bot: Bot, update: Update):
                                      reply_markup=InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help")))
 
         # ensure no spinny white circle
-        bot.answer_callback_query(query.id)
         query.message.delete()
-    except BadRequest as excp:
+        context.bot.answer_callback_query(query.id)
+    except Exception as excp:
         if excp.message == "Message is not modified":
             pass
         elif excp.message == "Query_id_invalid":
@@ -269,11 +259,12 @@ def help_button(bot: Bot, update: Update):
         elif excp.message == "Message can't be deleted":
             pass
         else:
+            query.message.edit_text(excp.message)
             LOGGER.exception("Exception in help buttons. %s", str(query.data))
 
 
 @run_async
-def get_help(bot: Bot, update: Update):
+def get_help(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     args = update.effective_message.text.split(None, 1)
 
@@ -324,7 +315,7 @@ def send_settings(chat_id, user_id, user=False):
 
 
 @run_async
-def settings_button(bot: Bot, update: Update):
+def settings_button(update, context):
     query = update.callback_query
     user = update.effective_user
     mod_match = re.match(r"stngs_module\((.+?),(.+?)\)", query.data)
@@ -335,7 +326,7 @@ def settings_button(bot: Bot, update: Update):
         if mod_match:
             chat_id = mod_match.group(1)
             module = mod_match.group(2)
-            chat = bot.get_chat(chat_id)
+            chat = context.bot.get_chat(chat_id)
             text = "*{}* has the following settings for the *{}* module:\n\n".format(escape_markdown(chat.title),
                                                                                      CHAT_SETTINGS[module].__mod_name__) + \
                    CHAT_SETTINGS[module].__chat_settings__(chat_id, user.id)
@@ -348,7 +339,7 @@ def settings_button(bot: Bot, update: Update):
         elif prev_match:
             chat_id = prev_match.group(1)
             curr_page = int(prev_match.group(2))
-            chat = bot.get_chat(chat_id)
+            chat = context.bot.get_chat(chat_id)
             query.message.reply_text("Hi there! There are quite a few settings for {} - go ahead and pick what "
                                      "you're interested in.".format(chat.title),
                                      reply_markup=InlineKeyboardMarkup(
@@ -358,7 +349,7 @@ def settings_button(bot: Bot, update: Update):
         elif next_match:
             chat_id = next_match.group(1)
             next_page = int(next_match.group(2))
-            chat = bot.get_chat(chat_id)
+            chat = context.bot.get_chat(chat_id)
             query.message.reply_text("Hi there! There are quite a few settings for {} - go ahead and pick what "
                                      "you're interested in.".format(chat.title),
                                      reply_markup=InlineKeyboardMarkup(
@@ -367,7 +358,7 @@ def settings_button(bot: Bot, update: Update):
 
         elif back_match:
             chat_id = back_match.group(1)
-            chat = bot.get_chat(chat_id)
+            chat = context.bot.get_chat(chat_id)
             query.message.reply_text(text="Hi there! There are quite a few settings for {} - go ahead and pick what "
                                           "you're interested in.".format(escape_markdown(chat.title)),
                                      parse_mode=ParseMode.MARKDOWN,
@@ -389,7 +380,7 @@ def settings_button(bot: Bot, update: Update):
 
 
 @run_async
-def get_settings(bot: Bot, update: Update):
+def get_settings(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     msg = update.effective_message  # type: Optional[Message]
@@ -403,7 +394,7 @@ def get_settings(bot: Bot, update: Update):
                            reply_markup=InlineKeyboardMarkup(
                                [[InlineKeyboardButton(text="Settings",
                                                       url="t.me/{}?start=stngs_{}".format(
-                                                          bot.username, chat.id))]]))
+                                                          context.bot.username, chat.id))]]))
         else:
             text = "Click here to check your settings."
 
@@ -412,7 +403,7 @@ def get_settings(bot: Bot, update: Update):
 
 
 @run_async
-def donate(bot: Bot, update: Update):
+def donate(update, context):
     user = update.effective_message.from_user
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -426,14 +417,14 @@ def donate(bot: Bot, update: Update):
 
     else:
         try:
-            bot.send_message(user.id, DONATE_STRING, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+            context.bot.send_message(user.id, DONATE_STRING, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
             update.effective_message.reply_text("I've PM'ed you about donating to my creator!")
         except Unauthorized:
             update.effective_message.reply_text("Contact me in PM first to get donation information.")
 
 
-def migrate_chats(bot: Bot, update: Update):
+def migrate_chats(update, context):
     msg = update.effective_message  # type: Optional[Message]
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
