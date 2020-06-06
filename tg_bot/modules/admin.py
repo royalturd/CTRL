@@ -11,6 +11,7 @@ from telegram.utils.helpers import escape_markdown, mention_html
 from tg_bot import dispatcher
 from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin
+from tg_bot.modules.helper_funcs.admin_rights import user_can_pin, user_can_promote
 from tg_bot.modules.helper_funcs.extraction import extract_user
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.connection import connected
@@ -20,11 +21,12 @@ from tg_bot.modules.translations.strings import tld
 @bot_admin
 @user_admin
 @loggable
-def promote(bot: Bot, update: Update, args: List[str]) -> str:
+def promote(update, context):
     message = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
     conn = connected(bot, update, chat, user.id)
+    args = context.args
     if not conn == False:
         chatD = dispatcher.bot.getChat(conn)
     else:
@@ -32,29 +34,29 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
         if chat.type == "private":
             exit(1)
 
-    if not chatD.get_member(bot.id).can_promote_members:
+    if not chatD.get_member(context.bot.id).can_promote_members:
         update.effective_message.reply_text("I can't promote/demote people here! "
                                             "Make sure I'm admin and can appoint new admins.")
         exit(1)
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text(tld(chat.id, "You don't seem to be referring to a user."))
+        message.reply_text("You don't seem to be referring to a user."))
         return ""
 
-    user_member = chatD.get_member(user_id)
+    user_member = chat.get_member(user_id)
     if user_member.status == 'administrator' or user_member.status == 'creator':
-        message.reply_text(tld(chat.id, "How am I meant to promote someone that's already an admin?"))
+        message.reply_text("This person is already an admin...!")
         return ""
 
-    if user_id == bot.id:
+    if user_id == context.bot.id:
         message.reply_text(tld(chat.id, "I can't promote myself! Get an admin to do it for me."))
         return ""
 
     # set same perms as bot - bot can't assign higher perms than itself!
     bot_member = chatD.get_member(bot.id)
 
-    bot.promoteChatMember(chatD.id, user_id,
+    context.bot.promoteChatMember(chatD.id, user_id,
                           can_change_info=bot_member.can_change_info,
                           can_post_messages=bot_member.can_post_messages,
                           can_edit_messages=bot_member.can_edit_messages,
@@ -75,17 +77,22 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
 @bot_admin
 @user_admin
 @loggable
-def demote(bot: Bot, update: Update, args: List[str]) -> str:
+def demote(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
+    args = context.args
     conn = connected(bot, update, chat, user.id)
     if not conn == False:
-        chatD = dispatcher.bot.getChat(conn)
+        chatD = dispatcher.context.bot.getChat(conn)
     else:
         chatD = update.effective_chat
         if chat.type == "private":
             exit(1)
+ 
+    if user_can_promote(chat, user, context.bot.id) == False:
+    	message.reply_text("You don't have enough rights to demote someone!")
+    	return ""
 
     if not chatD.get_member(bot.id).can_promote_members:
         update.effective_message.reply_text("I can't promote/demote people here! "
@@ -94,24 +101,24 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text(tld(chat.id, "You don't seem to be referring to a user."))
+        message.reply_text("You don't seem to be referring to a user."))
         return ""
 
     user_member = chatD.get_member(user_id)
     if user_member.status == 'creator':
-        message.reply_text(tld(chat.id, "This person CREATED the chat, how would I demote them?"))
+        message.reply_text("This person CREATED the chat, how would I demote them?"))
         return ""
 
     if not user_member.status == 'administrator':
-        message.reply_text(tld(chat.id, "Can't demote what wasn't promoted!"))
+        message.reply_text("Can't demote what wasn't promoted!"))
         return ""
 
-    if user_id == bot.id:
-        message.reply_text(tld(chat.id, "I can't demote myself!"))
+    if user_id == context.bot.id:
+        message.reply_text("I can't demote myself!"))
         return ""
 
     try:
-        bot.promoteChatMember(int(chatD.id), int(user_id),
+        context.bot.promoteChatMember(int(chatD.id), int(user_id),
                               can_change_info=False,
                               can_post_messages=False,
                               can_edit_messages=False,
@@ -140,13 +147,18 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
 @can_pin
 @user_admin
 @loggable
-def pin(bot: Bot, update: Update, args: List[str]) -> str:
+def pin(update, context):
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
+    args = context.args
 
     is_group = chat.type != "private" and chat.type != "channel"
 
     prev_message = update.effective_message.reply_to_message
+
+    if user_can_pin(chat, user, context.bot.id) == False:
+    	message.reply_text("You are missing rights to pin a message!")
+    	return ""
 
     is_silent = True
     if len(args) >= 1:
@@ -154,7 +166,7 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
 
     if prev_message and is_group:
         try:
-            bot.pinChatMessage(chat.id, prev_message.message_id, disable_notification=is_silent)
+            context.bot.pinChatMessage(chat.id, prev_message.message_id, disable_notification=is_silent)
         except BadRequest as excp:
             if excp.message == "Chat_not_modified":
                 pass
@@ -172,12 +184,17 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
 @can_pin
 @user_admin
 @loggable
-def unpin(bot: Bot, update: Update) -> str:
+def unpin(update, context):
     chat = update.effective_chat
     user = update.effective_user  # type: Optional[User]
+    args = context.args
+
+    if user_can_pin(chat, user, context.bot.id) == False:
+    	message.reply_text("You are missing rights to unpin a message!")
+    	return ""
 
     try:
-        bot.unpinChatMessage(chat.id)
+        context.bot.unpinChatMessage(chat.id)
     except BadRequest as excp:
         if excp.message == "Chat_not_modified":
             pass
@@ -193,8 +210,10 @@ def unpin(bot: Bot, update: Update) -> str:
 @run_async
 @bot_admin
 @user_admin
-def invite(bot: Bot, update: Update):
+def invite(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
+    args = context.args
+
     if chat.username:
         update.effective_message.reply_text(chat.username)
     elif chat.type == chat.SUPERGROUP or chat.type == chat.CHANNEL:
@@ -209,7 +228,7 @@ def invite(bot: Bot, update: Update):
 
 
 @run_async
-def adminlist(bot: Bot, update: Update):
+def adminlist(update, context):
     administrators = update.effective_chat.get_administrators()
     msg = update.effective_message
     text = "Admins in *{}*:".format(update.effective_chat.title or "this chat")
