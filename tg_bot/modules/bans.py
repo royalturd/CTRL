@@ -12,6 +12,7 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, \
     is_user_admin, is_user_in_chat, is_bot_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user_and_text
+from tg_bot.modules.helper_funcs.admin_rights import user_can_ban
 from tg_bot.modules.helper_funcs.string_handling import extract_time
 from tg_bot.modules.log_channel import loggable
 from tg_bot.modules.helper_funcs.filters import CustomFilters
@@ -51,10 +52,15 @@ RUNBAN_ERRORS = {
 @can_restrict
 @user_admin
 @loggable
-def ban(bot: Bot, update: Update, args: List[str]) -> str:
+def ban(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
+
+    if user_can_ban(chat, user, bot.id) == False:
+    	message.reply_text("You don't have enough rights to ban users!")
+    	return ""
 
     user_id, reason = extract_user_and_text(message, args)
 
@@ -98,7 +104,7 @@ def ban(bot: Bot, update: Update, args: List[str]) -> str:
     try:
         chat.kick_member(user_id)
         keyboard = []
-        bot.send_sticker(chat.id, BAN_STICKER)
+        context.bot.send_sticker(chat.id, BAN_STICKER)
         message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
         return log
 
@@ -121,10 +127,15 @@ def ban(bot: Bot, update: Update, args: List[str]) -> str:
 @can_restrict
 @user_admin
 @loggable
-def temp_ban(bot: Bot, update: Update, args: List[str]) -> str:
+def temp_ban(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
+
+   if user_can_ban(chat, user, bot.id) == False:
+    	message.reply_text("You don't have enough rights to ban users!")
+    	return ""
 
     user_id, reason = extract_user_and_text(message, args)
 
@@ -145,7 +156,7 @@ def temp_ban(bot: Bot, update: Update, args: List[str]) -> str:
         message.reply_text("I really wish I could ban admins...")
         return ""
 
-    if user_id == bot.id:
+    if user_id == context.bot.id:
         message.reply_text("I'm not gonna BAN myself, are you crazy?")
         return ""
 
@@ -177,7 +188,7 @@ def temp_ban(bot: Bot, update: Update, args: List[str]) -> str:
 
     try:
         chat.kick_member(user_id, until_date=bantime)
-        bot.send_sticker(chat.id, BAN_STICKER)
+        context.bot.send_sticker(chat.id, BAN_STICKER)
         message.reply_text("Banned! User will be banned for {}.".format(time_val))
         return log
 
@@ -204,6 +215,11 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
+
+    if user_can_ban(chat, user, bot.id) == False:
+    	message.reply_text("You don't have enough rights to kick users!")
+    	return ""
 
     user_id, reason = extract_user_and_text(message, args)
 
@@ -223,7 +239,7 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
         message.reply_text("I really wish I could kick admins...")
         return ""
 
-    if user_id == bot.id:
+    if user_id == context.bot.id:
         message.reply_text("Yeahhh I'm not gonna do that")
         return ""
 
@@ -242,7 +258,7 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
             log += "\n<b>• Reason:</b> {}".format(reason)
             reply += "\n<b>Reason:</b> <i>{}</i>".format(reason)
             
-        bot.send_sticker(chat.id, KICK_STICKER)  # STICKER FOR /KICK
+        context.bot.send_sticker(chat.id, KICK_STICKER)  # STICKER FOR /KICK
         message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
 
         return log
@@ -256,7 +272,7 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
 @run_async
 @bot_admin
 @can_restrict
-def kickme(bot: Bot, update: Update):
+def kickme(update, context):
     user_id = update.effective_message.from_user.id
     if is_user_admin(update.effective_chat, user_id):
         update.effective_message.reply_text("I wish I could... but you're an admin.")
@@ -274,10 +290,15 @@ def kickme(bot: Bot, update: Update):
 @can_restrict
 @user_admin
 @loggable
-def unban(bot: Bot, update: Update, args: List[str]) -> str:
+def unban(update, context):
     message = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
+    args = context.args
+    
+    if user_can_ban(chat, user, context.bot.id) == False:
+    	message.reply_text("You don't have enough rights to unban people here!")
+    	return ""
 
     user_id, reason = extract_user_and_text(message, args)
 
@@ -293,7 +314,7 @@ def unban(bot: Bot, update: Update, args: List[str]) -> str:
         else:
             raise
 
-    if user_id == bot.id:
+    if user_id == context.bot.id:
         message.reply_text("How would I unban myself if I wasn't here...?")
         return ""
 
@@ -322,8 +343,9 @@ def unban(bot: Bot, update: Update, args: List[str]) -> str:
 
 @run_async
 @bot_admin
-def rban(bot: Bot, update: Update, args: List[str]):
+def rban(update, context):
     message = update.effective_message
+    args = context.args
 
     if not args:
         message.reply_text("You don't seem to be referring to a chat/user.")
@@ -339,7 +361,7 @@ def rban(bot: Bot, update: Update, args: List[str]):
         return
 
     try:
-        chat = bot.get_chat(chat_id.split()[0])
+        chat = context.bot.get_chat(chat_id.split()[0])
     except BadRequest as excp:
         if excp.message == "Chat not found":
             message.reply_text("Chat not found! Make sure you entered a valid chat ID and I'm part of that chat.")
@@ -368,7 +390,7 @@ def rban(bot: Bot, update: Update, args: List[str]):
         message.reply_text("I really wish I could ban admins...")
         return
 
-    if user_id == bot.id:
+    if user_id == context.bot.id:
         message.reply_text("I'm not gonna BAN myself, are you crazy?")
         return
 
@@ -389,10 +411,11 @@ def rban(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 @bot_admin
-def runban(bot: Bot, update: Update, args: List[str]):
+def runban(update, context):
     message = update.effective_message
-
+    args = context.args
     if not args:
+
         message.reply_text("You don't seem to be referring to a chat/user.")
         return
 
@@ -406,7 +429,7 @@ def runban(bot: Bot, update: Update, args: List[str]):
         return
 
     try:
-        chat = bot.get_chat(chat_id.split()[0])
+        chat = context.bot.get_chat(chat_id.split()[0])
     except BadRequest as excp:
         if excp.message == "Chat not found":
             message.reply_text("Chat not found! Make sure you entered a valid chat ID and I'm part of that chat.")
@@ -460,12 +483,17 @@ def runban(bot: Bot, update: Update, args: List[str]):
 @can_restrict
 @user_admin
 @loggable
-def sban(bot: Bot, update: Update, args: List[str]) -> str:
+def sban(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
-    
+    args = context.args
+
     update.effective_message.delete()
+
+    if user_can_ban(chat, user, context.bot.id) == False:
+    	message.reply_text("You don't have enough rights to unban people here!")
+    	return ""
 
     user_id, reason = extract_user_and_text(message, args)
 
@@ -483,7 +511,7 @@ def sban(bot: Bot, update: Update, args: List[str]) -> str:
     if is_user_ban_protected(chat, user_id, member):
         return ""
 
-    if user_id == bot.id:
+    if user_id == context.bot.id:
         return ""
 
     log = "<b>{}:</b>" \
