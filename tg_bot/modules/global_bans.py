@@ -46,9 +46,9 @@ UNGBAN_ERRORS = {
 
 
 @run_async
-def gban(bot: Bot, update: Update, args: List[str]):
+def gban(update, context):
     message = update.effective_message  # type: Optional[Message]
-
+    args = context.args
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
@@ -64,12 +64,12 @@ def gban(bot: Bot, update: Update, args: List[str]):
         message.reply_text("OOOH someone's trying to gban a support user! *grabs popcorn*")
         return
 
-    if user_id == bot.id:
+    if user_id == context.bot.id:
         message.reply_text("What you are expecting? 😗")
         return
 
     try:
-        user_chat = bot.get_chat(user_id)
+        user_chat = context.bot.get_chat(user_id)
     except BadRequest as excp:
         message.reply_text(excp.message)
         return
@@ -127,7 +127,7 @@ def gban(bot: Bot, update: Update, args: List[str]):
             continue
 
         try:
-            bot.kick_chat_member(chat_id, user_id)
+            context.bot.kick_chat_member(chat_id, user_id)
         except BadRequest as excp:
             if excp.message in GBAN_ERRORS:
                 pass
@@ -144,21 +144,21 @@ def gban(bot: Bot, update: Update, args: List[str]):
                        parse_mode=ParseMode.HTML)
 
     try:
-        bot.send_message(user_id, "You've been globally banned from all groups where I am admin. If this is a mistake, you can appeal your Gban @CtrlSupport",parse_mode=ParseMode.HTML)
+        context.bot.send_message(user_id, "You've been globally banned from all groups where I am admin. If this is a mistake, you can appeal your Gban @CtrlSupport",parse_mode=ParseMode.HTML)
     except:
         pass #Bot either blocked or never started by user
 
 
 @run_async
-def ungban(bot: Bot, update: Update, args: List[str]):
+def ungban(update, context):
     message = update.effective_message  # type: Optional[Message]
-
+    args = context.args
     user_id = extract_user(message, args)
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return
 
-    user_chat = bot.get_chat(user_id)
+    user_chat = context.bot.get_chat(user_id)
     if user_chat.type != 'private':
         message.reply_text("That's not a user!")
         return
@@ -192,7 +192,7 @@ def ungban(bot: Bot, update: Update, args: List[str]):
             continue
 
         try:
-            member = bot.get_chat_member(chat_id, user_id)
+            member = context.bot.get_chat_member(chat_id, user_id)
             if member.status == 'kicked':
                 bot.unban_chat_member(chat_id, user_id)
 
@@ -201,7 +201,7 @@ def ungban(bot: Bot, update: Update, args: List[str]):
                 pass
             else:
                 message.reply_text("Could not un-gban due to: {}".format(excp.message))
-                bot.send_message(OWNER_ID, "Could not un-gban due to: {}".format(excp.message))
+                context.bot.send_message(OWNER_ID, "Could not un-gban due to: {}".format(excp.message))
                 return
         except TelegramError:
             pass
@@ -215,7 +215,7 @@ def ungban(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def gbanlist(bot: Bot, update: Update):
+def gbanlist(update, context):
     banned_users = sql.get_gban_list()
 
     if not banned_users:
@@ -242,9 +242,9 @@ def check_and_ban(update, user_id, should_message=True):
 
 
 @run_async
-def enforce_gban(bot: Bot, update: Update):
+def enforce_gban(update, context):
     # Not using @restrict handler to avoid spamming - just ignore if cant gban.
-    if sql.does_chat_gban(update.effective_chat.id) and update.effective_chat.get_member(bot.id).can_restrict_members:
+    if sql.does_chat_gban(update.effective_chat.id) and update.effective_chat.get_member(context.bot.id).can_restrict_members:
         user = update.effective_user  # type: Optional[User]
         chat = update.effective_chat  # type: Optional[Chat]
         msg = update.effective_message  # type: Optional[Message]
@@ -265,7 +265,8 @@ def enforce_gban(bot: Bot, update: Update):
 
 @run_async
 @user_admin
-def gbanstat(bot: Bot, update: Update, args: List[str]):
+def gbanstat(update, context):
+    args = context.args
     if len(args) > 0:
         if args[0].lower() in ["on", "yes"]:
             sql.enable_gbans(update.effective_chat.id)
@@ -286,7 +287,7 @@ def gbanstat(bot: Bot, update: Update, args: List[str]):
   
 
 @run_async
-def check_gbans(bot: Bot, update: Update):
+def check_gbans(update, context):
     '''By @TheRealPhoenix'''
     banned = sql.get_gban_list()
     deleted = 0
@@ -294,7 +295,7 @@ def check_gbans(bot: Bot, update: Update):
         id = user["user_id"]
         time.sleep(0.1) # Reduce floodwait
         try:
-            bot.get_chat(id)
+            context.bot.get_chat(id)
         except BadRequest:
             deleted += 1
     if deleted >= 1:
@@ -305,7 +306,7 @@ def check_gbans(bot: Bot, update: Update):
         update.message.reply_text("No deleted accounts in the gbanlist!")
         
 @run_async
-def clear_gbans(bot: Bot, update: Update):
+def clear_gbans(update, context):
     '''Check and remove deleted accounts from gbanlist.
     By @TheRealPhoenix'''
     banned = sql.get_gban_list()
@@ -314,7 +315,7 @@ def clear_gbans(bot: Bot, update: Update):
         id = user["user_id"]
         time.sleep(0.1) # Reduce floodwait
         try:
-            bot.get_chat(id)
+            context.bot.get_chat(id)
         except BadRequest:
             deleted += 1
             sql.ungban_user(id)
