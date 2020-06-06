@@ -1,6 +1,4 @@
 from functools import wraps
-from typing import Optional
-
 from telegram import User, Chat, ChatMember, Update, Bot
 
 from tg_bot import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
@@ -8,7 +6,6 @@ from tg_bot import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 
 def can_delete(chat: Chat, bot_id: int) -> bool:
     return chat.get_member(bot_id).can_delete_messages
-
 
 def is_user_ban_protected(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
     if chat.type == 'private' \
@@ -50,9 +47,9 @@ def is_user_in_chat(chat: Chat, user_id: int) -> bool:
 
 def bot_can_delete(func):
     @wraps(func)
-    def delete_rights(bot: Bot, update: Update, *args, **kwargs):
-        if can_delete(update.effective_chat, bot.id):
-            return func(bot, update, *args, **kwargs)
+    def delete_rights(update, context, *args, **kwargs):
+        if can_delete(update.effective_chat, context.bot.id):
+            return func(update, context, *args, **kwargs)
         else:
             update.effective_message.reply_text("I can't delete messages here! "
                                                 "Make sure I'm admin and can delete other user's messages.")
@@ -62,9 +59,9 @@ def bot_can_delete(func):
 
 def can_pin(func):
     @wraps(func)
-    def pin_rights(bot: Bot, update: Update, *args, **kwargs):
-        if update.effective_chat.get_member(bot.id).can_pin_messages:
-            return func(bot, update, *args, **kwargs)
+    def pin_rights(update, context, *args, **kwargs):
+        if update.effective_chat.get_member(context.bot.id).can_pin_messages:
+            return func(update, context, *args, **kwargs)
         else:
             update.effective_message.reply_text("I can't pin messages here! "
                                                 "Make sure I'm admin and can pin messages.")
@@ -74,9 +71,9 @@ def can_pin(func):
 
 def can_promote(func):
     @wraps(func)
-    def promote_rights(bot: Bot, update: Update, *args, **kwargs):
-        if update.effective_chat.get_member(bot.id).can_promote_members:
-            return func(bot, update, *args, **kwargs)
+    def promote_rights(update, context, *args, **kwargs):
+        if update.effective_chat.get_member(context.bot.id).can_promote_members:
+            return func(update, context, *args, **kwargs)
         else:
             update.effective_message.reply_text("I can't promote/demote people here! "
                                                 "Make sure I'm admin and can appoint new admins.")
@@ -86,9 +83,9 @@ def can_promote(func):
 
 def can_restrict(func):
     @wraps(func)
-    def promote_rights(bot: Bot, update: Update, *args, **kwargs):
-        if update.effective_chat.get_member(bot.id).can_restrict_members:
-            return func(bot, update, *args, **kwargs)
+    def promote_rights(update, context, *args, **kwargs):
+        if update.effective_chat.get_member(context.bot.id).can_restrict_members:
+            return func(update, context, *args, **kwargs)
         else:
             update.effective_message.reply_text("I can't restrict people here! "
                                                 "Make sure I'm admin and can appoint new admins.")
@@ -96,31 +93,11 @@ def can_restrict(func):
     return promote_rights
 
 
-
-def sudo_user(func):
-    @wraps(func)
-    def is_admin(bot: Bot, update: Update, *args, **kwargs):
-        user = update.effective_user  # type: Optional[User]
-        if user.id in SUDO_USERS:
-            return func(bot, update, *args, **kwargs)
-
-        elif not user:
-            pass
-
-        elif DEL_CMDS and " " not in update.effective_message.text:
-            update.effective_message.delete()
-
-        else:
-            update.effective_message.reply_text("This command is restricted to my sudo users only.")
-
-    return is_admin
-
-
 def bot_admin(func):
     @wraps(func)
-    def is_admin(bot: Bot, update: Update, *args, **kwargs):
-        if is_bot_admin(update.effective_chat, bot.id):
-            return func(bot, update, *args, **kwargs)
+    def is_admin(update, context, *args, **kwargs):
+        if is_bot_admin(update.effective_chat, context.bot.id):
+            return func(update, context, *args, **kwargs)
         else:
             update.effective_message.reply_text("I'm not admin!")
 
@@ -129,10 +106,10 @@ def bot_admin(func):
 
 def user_admin(func):
     @wraps(func)
-    def is_admin(bot: Bot, update: Update, *args, **kwargs):
+    def is_admin(update, context, *args, **kwargs):
         user = update.effective_user  # type: Optional[User]
         if user and is_user_admin(update.effective_chat, user.id):
-            return func(bot, update, *args, **kwargs)
+            return func(update, context, *args, **kwargs)
 
         elif not user:
             pass
@@ -141,17 +118,17 @@ def user_admin(func):
             update.effective_message.delete()
 
         else:
-            update.effective_message.reply_text("Who dis non-admin telling me what to do?")
+            update.effective_message.reply_text("You're missing admin rights for using this command!")
 
     return is_admin
 
 
 def user_admin_no_reply(func):
     @wraps(func)
-    def is_admin(bot: Bot, update: Update, *args, **kwargs):
+    def is_admin(update, context, *args, **kwargs):
         user = update.effective_user  # type: Optional[User]
         if user and is_user_admin(update.effective_chat, user.id):
-            return func(bot, update, *args, **kwargs)
+            return func(update, context, *args, **kwargs)
 
         elif not user:
             pass
@@ -164,9 +141,9 @@ def user_admin_no_reply(func):
 
 def user_not_admin(func):
     @wraps(func)
-    def is_not_admin(bot: Bot, update: Update, *args, **kwargs):
+    def is_not_admin(update, context, *args, **kwargs):
         user = update.effective_user  # type: Optional[User]
         if user and not is_user_admin(update.effective_chat, user.id):
-            return func(bot, update, *args, **kwargs)
+            return func(update, context, *args, **kwargs)
 
     return is_not_admin
