@@ -10,7 +10,7 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 
 
 @run_async
-def lyrics(bot: Bot, update: Update, args):
+def lyrics(update, context):
     msg = update.effective_message
     query = " ".join(args)
     song = ""
