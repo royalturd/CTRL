@@ -24,35 +24,38 @@ def escape_html(word):
 
 
 @run_async
-def quickscope(bot: Bot, update: Update, args: List[int]):
+def quickscope(update, context):
+    args = context.args
     if args:
         chat_id = str(args[1])
         to_kick = str(args[0])
     else:
         update.effective_message.reply_text("You don't seem to be referring to a chat/user")
     try:
-        bot.kick_chat_member(chat_id, to_kick)
+        context.bot.kick_chat_member(chat_id, to_kick)
         update.effective_message.reply_text("Attempted banning " + to_kick + " from" + chat_id)
     except BadRequest as excp:
         update.effective_message.reply_text(excp.message + " " + to_kick)
 
 
 @run_async
-def quickunban(bot: Bot, update: Update, args: List[int]):
+def quickunban(update, context):
+    args = context.args
     if args:
         chat_id = str(args[1])
         to_kick = str(args[0])
     else:
         update.effective_message.reply_text("You don't seem to be referring to a chat/user")
     try:
-        bot.unban_chat_member(chat_id, to_kick)
+        context.bot.unban_chat_member(chat_id, to_kick)
         update.effective_message.reply_text("Attempted unbanning " + to_kick + " from" + chat_id)
     except BadRequest as excp:
         update.effective_message.reply_text(excp.message + " " + to_kick)
 
 
 @run_async
-def banall(bot: Bot, update: Update, args: List[int]):
+def banall(update, context):
+    args = context.args
     if args:
         chat_id = str(args[0])
         all_mems = sql.get_chat_members(chat_id)
@@ -61,7 +64,7 @@ def banall(bot: Bot, update: Update, args: List[int]):
         all_mems = sql.get_chat_members(chat_id)
     for mems in all_mems:
         try:
-            bot.kick_chat_member(chat_id, mems.user)
+            context.bot.kick_chat_member(chat_id, mems.user)
             update.effective_message.reply_text("Tried banning " + str(mems.user))
             sleep(0.1)
         except BadRequest as excp:
@@ -70,7 +73,8 @@ def banall(bot: Bot, update: Update, args: List[int]):
 
 
 @run_async
-def snipe(bot: Bot, update: Update, args: List[str]):
+def snipe(update, context):
+    args = context.args
     try:
         chat_id = str(args[0])
         del args[0]
@@ -79,7 +83,7 @@ def snipe(bot: Bot, update: Update, args: List[str]):
     to_send = " ".join(args)
     if len(to_send) >= 2:
         try:
-            bot.sendMessage(int(chat_id), str(to_send))
+            context.bot.sendMessage(int(chat_id), str(to_send))
         except TelegramError:
             LOGGER.warning("Couldn't send to group %s", str(chat_id))
             update.effective_message.reply_text("Couldn't send the message. Perhaps I'm not part of that group?")
@@ -87,7 +91,8 @@ def snipe(bot: Bot, update: Update, args: List[str]):
 
 
 @bot_admin
-def leavechat(bot: Bot, update: Update, args: List[int]):
+def leavechat(update, context):
+    args = context.args
     if args:
         chat_id = int(args[0])
     else:
@@ -95,8 +100,8 @@ def leavechat(bot: Bot, update: Update, args: List[int]):
     try:
         chat = bot.getChat(chat_id)
         titlechat = bot.get_chat(chat_id).title
-        bot.sendMessage(chat_id, "`I Go Away!`")
-        bot.leaveChat(chat_id)
+        context.bot.sendMessage(chat_id, "`I Go Away!`")
+        context.bot.leaveChat(chat_id)
         update.effective_message.reply_text("I left group {}".format(titlechat))
 
     except BadRequest as excp:
@@ -106,7 +111,7 @@ def leavechat(bot: Bot, update: Update, args: List[int]):
             return
 
 @run_async
-def slist(bot: Bot, update: Update):
+def slist(update, context):
     message = update.effective_message
     text1 = "My sudo users are:"
     text2 = "My support users are:"
