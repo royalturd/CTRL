@@ -13,10 +13,11 @@ from tg_bot.modules.helper_funcs.chat_status import bot_admin
 
 @bot_admin
 @run_async
-def addsudo(bot: Bot, update: Update, args: List[str]):
+def addsudo(update, context):
     message = update.effective_message
     banner = update.effective_user
     user_id = extract_user(message, args)
+    args = context.args
     
     if not user_id:
         message.reply_text("Refer a user first....")
