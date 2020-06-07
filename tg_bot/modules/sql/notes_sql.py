@@ -1,7 +1,5 @@
-
 # Note: chat_id's are stored as strings because the int is too large to be stored in a PSQL database.
 import threading
-from typing import Union
 
 from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, func, distinct
 
@@ -46,11 +44,13 @@ class Buttons(BASE):
         self.url = url
         self.same_line = same_line
 
+
 Notes.__table__.create(checkfirst=True)
 Buttons.__table__.create(checkfirst=True)
 
 NOTES_INSERTION_LOCK = threading.RLock()
 BUTTONS_INSERTION_LOCK = threading.RLock()
+
 
 def add_note_to_db(chat_id, note_name, note_data, msgtype, buttons=None, file=None):
     if not buttons:
@@ -75,14 +75,20 @@ def add_note_to_db(chat_id, note_name, note_data, msgtype, buttons=None, file=No
 
 def get_note(chat_id, note_name):
     try:
-        return SESSION.query(Notes).get((str(chat_id), note_name))
+        return SESSION.query(Notes).filter(
+            func.lower(Notes.name) == note_name,
+            Notes.chat_id == str(chat_id)
+        ).first()
     finally:
         SESSION.close()
 
 
 def rm_note(chat_id, note_name):
     with NOTES_INSERTION_LOCK:
-        note = SESSION.query(Notes).get((str(chat_id), note_name))
+        note = SESSION.query(Notes).filter(
+            func.lower(Notes.name) == note_name,
+            Notes.chat_id == str(chat_id)
+        ).first()
         if note:
             with BUTTONS_INSERTION_LOCK:
                 buttons = SESSION.query(Buttons).filter(Buttons.chat_id == str(chat_id),
