@@ -1,0 +1,15 @@
+tg_bot/config.py
+logfile
+tg_bot.session
+tg_bot.session-journal
+*.pyc
+.idea/
+.project
+.pydevproject
+.directory
+.vscode
+okgoogle.png
+*.backup
+sticker.png
+kangsticker.png
+kangsticker
