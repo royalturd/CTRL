@@ -1,4 +1,5 @@
 import re
+from html import escape
 from typing import Optional
 
 import telegram
@@ -6,7 +7,7 @@ from telegram import ParseMode, InlineKeyboardMarkup, Message, Chat
 from telegram import Update, Bot
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, MessageHandler, DispatcherHandlerStop, run_async, Filters
-from telegram.utils.helpers import escape_markdown, mention_markdown
+from telegram.utils.helpers import mention_html, escape_markdown
 
 from tg_bot import dispatcher, LOGGER
 from tg_bot.modules.disable import DisableAbleCommandHandler
@@ -15,12 +16,12 @@ from tg_bot.modules.helper_funcs.extraction import extract_text
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 from tg_bot.modules.helper_funcs.misc import build_keyboard_parser
 from tg_bot.modules.helper_funcs.msg_types import get_filter_type
-from tg_bot.modules.helper_funcs.string_handling import split_quotes, button_markdown_parser, escape_invalid_curly_brackets
+from tg_bot.modules.helper_funcs.string_handling import split_quotes, button_markdown_parser, escape_invalid_curly_brackets, markdown_to_html
 from tg_bot.modules.sql import cust_filters_sql as sql
 
 from tg_bot.modules.connection import connected
 
-from tg_bot.modules.helper_funcs.alternate import send_message
+from tg_bot.modules.helper_funcs.alternate import send_message, typing_action
 
 HANDLER_GROUP = 15
 
@@ -39,6 +40,7 @@ ENUM_FUNC_MAP = {
 
 
 @run_async
+@typing_action
 def list_handlers(update, context):
 	chat = update.effective_chat
 	user = update.effective_user
@@ -77,6 +79,7 @@ def list_handlers(update, context):
 
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
+@typing_action
 def filters(update, context):
 	chat = update.effective_chat  # type: Optional[Chat]
 	user = update.effective_user  # type: Optional[User]
@@ -170,6 +173,7 @@ def filters(update, context):
 
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
+@typing_action
 def stop_filter(update, context):
 	chat = update.effective_chat  # type: Optional[Chat]
 	user = update.effective_user  # type: Optional[User]
@@ -228,9 +232,9 @@ def reply_filter(update, context):
 				if filt.reply_text:
 					valid_format = escape_invalid_curly_brackets(filt.reply_text, VALID_WELCOME_FORMATTERS)
 					if valid_format:
-						filtext = valid_format.format(first=escape_markdown(message.from_user.first_name),
-													  last=escape_markdown(message.from_user.last_name or message.from_user.first_name),
-													  fullname=escape_markdown(" ".join([message.from_user.first_name, message.from_user.last_name] if message.from_user.last_name else [message.from_user.first_name])), username="@" + message.from_user.username if message.from_user.username else mention_markdown(message.from_user.id, message.from_user.first_name), mention=mention_markdown(message.from_user.id, message.from_user.first_name), chatname=escape_markdown(message.chat.title if message.chat.type != "private" else message.from_user.first_name), id=message.from_user.id)
+						filtext = valid_format.format(first=message.from_user.first_name,
+													  last=message.from_user.last_name or message.from_user.first_name,
+													  fullname=" ".join([message.from_user.first_name, message.from_user.last_name] if message.from_user.last_name else [message.from_user.first_name]), username="@" + escape(message.from_user.username) if message.from_user.username else mention_html(message.from_user.id, message.from_user.first_name), mention=message.from_user.mention_html(), chatname=message.chat.title if message.chat.type != "private" else message.from_user.first_name, id=message.from_user.id)
 					else:
 						filtext = ""
 				else:
@@ -238,17 +242,17 @@ def reply_filter(update, context):
 
 				if filt.file_type in (sql.Types.BUTTON_TEXT, sql.Types.TEXT):
 					try:
-						context.bot.send_message(chat.id, filtext, reply_to_message_id=message.message_id,
-										 parse_mode="markdown", disable_web_page_preview=True,
+						context.bot.send_message(chat.id, markdown_to_html(filtext), reply_to_message_id=message.message_id,
+										 parse_mode=ParseMode.HTML, disable_web_page_preview=True,
 										 reply_markup=keyboard)
 					except BadRequest as excp:
 						error_catch = get_exception(excp, filt, chat)
 						if error_catch == "noreply":
 							try:
-								context.bot.send_message(chat.id, filtext, parse_mode="markdown", disable_web_page_preview=True, reply_markup=keyboard)
+								context.bot.send_message(chat.id, markdown_to_html(filtext), parse_mode=ParseMode.HTML, disable_web_page_preview=True, reply_markup=keyboard)
 							except BadRequest as excp:
 								LOGGER.exception("Error in filters: " + excp.message)
-								send_message(update.effective_message, tl(update.effective_message, get_exception(excp, filt, chat)))
+								send_message(update.effective_message, get_exception(excp, filt, chat))
 								pass
 						else:
 							try:
@@ -257,7 +261,7 @@ def reply_filter(update, context):
 								LOGGER.exception("Failed to send message: " + excp.message)
 								pass
 				else:
-					ENUM_FUNC_MAP[filt.file_type](chat.id, filt.file_id, caption=filtext, reply_to_message_id=message.message_id, parse_mode="markdown", disable_web_page_preview=True, reply_markup=keyboard)
+					ENUM_FUNC_MAP[filt.file_type](chat.id, filt.file_id, caption=markdown_to_html(filtext), reply_to_message_id=message.message_id, parse_mode=ParseMode.HTML, disable_web_page_preview=True, reply_markup=keyboard)
 				break
 			else:
 				if filt.is_sticker:
@@ -316,6 +320,36 @@ def reply_filter(update, context):
 						pass
 				break
 
+@run_async
+@user_admin
+@typing_action
+def rmall_filters(update, context):
+    chat = update.effective_chat
+    user = update.effective_user
+    msg = update.effective_message
+
+    usermem = chat.get_member(user.id)
+    if not usermem.status == 'creator':
+       msg.reply_text("This command can be only used by chat OWNER!")
+       return
+
+    allfilters = sql.get_chat_triggers(chat.id)
+
+    if not allfilters:
+       msg.reply_text("No filters in this chat, nothing to stop!")
+       return
+
+    count = 0
+    filterlist = []
+    for x in allfilters:
+        count += 1
+        filterlist.append(x)
+
+    for i in filterlist:
+        sql.remove_filter(chat.id, i)
+
+    return msg.reply_text(f"Cleaned {count} filters in {chat.title}")
+
 
 def get_exception(excp, filt, chat):
 	if excp.message == "Unsupported url protocol":
@@ -349,23 +383,30 @@ def __chat_settings__(chat_id, user_id):
 
 
 __help__ = """
- × /filters: List all active filters saved in the chat.
-
+Make your chat more lively with filters; The bot will reply to certain words!
+Filters are case insensitive; every time someone says your trigger words, {} will reply something else! can be used to create your own commands, if desired.
+ - /filters: list all active filters in this chat.
 *Admin only:*
- × /filter <keyword> <reply message>: Add a filter to this chat. The bot will now reply that message whenever 'keyword'\
-is mentioned. If you reply to a sticker with a keyword, the bot will reply with that sticker. NOTE: all filter \
-keywords are in lowercase. If you want your keyword to be a sentence, use quotes. eg: /filter "hey there" How you \
-doin?
- × /stop <filter keyword>: Stop that filter.
-
+ - /filter <keyword> <reply message>: Every time someone says "word", the bot will reply with "sentence". For multiple word filters, quote the first word.
+ - /stop <filter keyword>: stop that filter.
 *Chat creator only:*
- × /rmallfilter: Stop all chat filters at once.
+ - /rmallfilter: Stop all chat filters at once.
+"""
+ 
+ An example of how to set a filter would be via:
+`/filter hello Hello there! How are you?`
+A multiword filter could be set via:
+`/filter "hello friend" Hello back! Long time no see!`
+If you want to save an image, gif, or sticker, or any other data, do the following:
+`/filter word while replying to a sticker or whatever data you'd like. Now, every time someone mentions "word", that sticker will be sent as a reply.`
+Now, anyone saying "hello" will be replied to with "Hello there! How are you?".
 """
 
 __mod_name__ = "Filters"
 
 FILTER_HANDLER = CommandHandler("filter", filters)
 STOP_HANDLER = CommandHandler("stop", stop_filter)
+RMALLFILTER_HANDLER = CommandHandler("rmallfilter", rmall_filters,  filters=Filters.group)
 LIST_HANDLER = DisableAbleCommandHandler("filters", list_handlers, admin_ok=True)
 CUST_FILTER_HANDLER = MessageHandler(CustomFilters.has_text & ~Filters.update.edited_message, reply_filter)
 
@@ -373,3 +414,4 @@ dispatcher.add_handler(FILTER_HANDLER)
 dispatcher.add_handler(STOP_HANDLER)
 dispatcher.add_handler(LIST_HANDLER)
 dispatcher.add_handler(CUST_FILTER_HANDLER, HANDLER_GROUP)
+dispatcher.add_handler(RMALLFILTER_HANDLER)
