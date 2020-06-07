@@ -23,10 +23,11 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 @bot_admin
 @user_admin
 @loggable
-def mute(bot: Bot, update: Update, args: List[str]) -> str:
+def mute(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     conn = connected(bot, update, chat, user.id)
     if not conn == False:
@@ -57,7 +58,7 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
             message.reply_text(tld(chat.id, "No! I'm not muting chat administrator! That would be a pretty dumb idea."))
 
         elif member.can_send_messages is None or member.can_send_messages:
-            bot.restrict_chat_member(chatD.id, user_id, can_send_messages=False)
+            context.bot.restrict_chat_member(chatD.id, user_id, can_send_messages=False)
             keyboard = []
             reply = tld(chat.id, "{} is muted in {}!").format(mention_html(member.user.id, member.user.first_name), chatD.title)
             message.reply_text(reply, reply_markup=keyboard, parse_mode=ParseMode.HTML)
@@ -80,10 +81,11 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
 @bot_admin
 @user_admin
 @loggable
-def unmute(bot: Bot, update: Update, args: List[str]) -> str:
+def unmute(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     conn = connected(bot, update, chat, user.id)
     if not conn == False:
@@ -107,7 +109,7 @@ def unmute(bot: Bot, update: Update, args: List[str]) -> str:
                 and member.can_send_other_messages and member.can_add_web_page_previews:
             message.reply_text(tld(chat.id, "This user already has the right to speak in {}.").format(chatD.title))
         else:
-            bot.restrict_chat_member(chatD.id, int(user_id),
+            context.bot.restrict_chat_member(chatD.id, int(user_id),
                                      can_send_messages=True,
                                      can_send_media_messages=True,
                                      can_send_other_messages=True,
@@ -134,7 +136,7 @@ def unmute(bot: Bot, update: Update, args: List[str]) -> str:
 @can_restrict
 @user_admin
 @loggable
-def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
+def temp_mute(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
@@ -199,7 +201,7 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
 
     try:
         if member.can_send_messages is None or member.can_send_messages:
-            bot.restrict_chat_member(chat.id, user_id, until_date=mutetime, can_send_messages=False)
+            context.bot.restrict_chat_member(chat.id, user_id, until_date=mutetime, can_send_messages=False)
             message.reply_text(tld(chat.id, "Muted for {} in {}!").format(time_val, chatD.title))
             return log
         else:
@@ -223,10 +225,11 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
 @bot_admin
 @user_admin
 @loggable
-def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
+def nomedia(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     conn = connected(bot, update, chat, user.id)
     if not conn == False:
@@ -253,7 +256,7 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
             message.reply_text(tld(chat.id, "Afraid I can't restrict admins!"))
 
         elif member.can_send_messages is None or member.can_send_messages:
-            bot.restrict_chat_member(chatD.id, user_id, can_send_messages=True,
+            context.bot.restrict_chat_member(chatD.id, user_id, can_send_messages=True,
                                      can_send_media_messages=False,
                                      can_send_other_messages=False,
                                      can_add_web_page_previews=False)
@@ -280,10 +283,11 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
 @bot_admin
 @user_admin
 @loggable
-def media(bot: Bot, update: Update, args: List[str]) -> str:
+def media(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     conn = connected(bot, update, chat, user.id)
     if not conn == False:
@@ -306,7 +310,7 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
                 and member.can_send_other_messages and member.can_add_web_page_previews:
             message.reply_text(tld(chat.id, "This user already has the rights to send anything in {}.").format(chatD.title))
         else:
-            bot.restrict_chat_member(chatD.id, int(user_id),
+            context.bot.restrict_chat_member(chatD.id, int(user_id),
                                      can_send_messages=True,
                                      can_send_media_messages=True,
                                      can_send_other_messages=True,
@@ -333,10 +337,11 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
 @can_restrict
 @user_admin
 @loggable
-def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
+def temp_nomedia(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     conn = connected(bot, update, chat, user.id)
     if not conn == False:
@@ -399,7 +404,7 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
 
     try:
         if member.can_send_messages is None or member.can_send_messages:
-            bot.restrict_chat_member(chat.id, user_id, until_date=mutetime, can_send_messages=True,
+            context.bot.restrict_chat_member(chat.id, user_id, until_date=mutetime, can_send_messages=True,
                                      can_send_media_messages=False,
                                      can_send_other_messages=False,
                                      can_add_web_page_previews=False)
@@ -425,15 +430,16 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
 @run_async
 @bot_admin
 @can_restrict
-def muteme(bot: Bot, update: Update, args: List[str]) -> str:
+def muteme(update, context):
     user_id = update.effective_message.from_user.id
     chat = update.effective_chat
     user = update.effective_user
+    args = context.args
     if is_user_admin(update.effective_chat, user_id):
         update.effective_message.reply_text("I wish I could... but you're an admin.")
         return
 
-    res = bot.restrict_chat_member(chat.id, user_id, can_send_messages=False)
+    res = context.bot.restrict_chat_member(chat.id, user_id, can_send_messages=False)
     if res:
         update.effective_message.reply_text("No problem, Muted!")
         log = "<b>{}:</b>" \
