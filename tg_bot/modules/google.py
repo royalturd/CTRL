@@ -5,7 +5,7 @@ from telegram.ext import run_async, Filters
 from tg_bot import dispatcher
 from tg_bot.modules.disable import DisableAbleCommandHandler
 
-def google(bot: Bot, update: Update):
+def google(update, context):
         query = update.effective_message.text.split(" ", 1)
         result_ = subprocess.run(['gsearch', str(query[1])], stdout=subprocess.PIPE)
         result = str(result_.stdout.decode())
