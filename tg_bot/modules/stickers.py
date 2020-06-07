@@ -1,4 +1,3 @@
-
 import hashlib
 import os
 import math
@@ -20,7 +19,7 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 
 
 @run_async
-def stickerid(bot: Bot, update: Update):
+def stickerid(update, context):
     msg = update.effective_message
     if msg.reply_to_message and msg.reply_to_message.sticker:
         update.effective_message.reply_text("Sticker ID:\n```" +
@@ -31,22 +30,23 @@ def stickerid(bot: Bot, update: Update):
 
 
 @run_async
-def getsticker(bot: Bot, update: Update):
+def getsticker(update, context):
     msg = update.effective_message
     chat_id = update.effective_chat.id
     if msg.reply_to_message and msg.reply_to_message.sticker:
         file_id = msg.reply_to_message.sticker.file_id
         newFile = bot.get_file(file_id)
         newFile.download('sticker.png')
-        bot.send_document(chat_id, document=open('sticker.png', 'rb'))
+        context.bot.send_document(chat_id, document=open('sticker.png', 'rb'))
         os.remove("sticker.png")
     else:
         update.effective_message.reply_text("Please reply to a sticker for me to upload its PNG.")
 
 
 @run_async
-def kang(bot: Bot, update: Update, args: List[str]):
+def kang(update, context):
     msg = update.effective_message
+    args = context.args
     user = update.effective_user
     packnum = 0
     packname = "a" + str(user.id) + "_by_"+bot.username
@@ -103,7 +103,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
                 im.thumbnail(maxsize)
             if not msg.reply_to_message.sticker:
                 im.save(kangsticker, "PNG")
-            bot.add_sticker_to_set(user_id=user.id, name=packname,
+            context.bot.add_sticker_to_set(user_id=user.id, name=packname,
                                     png_sticker=open('kangsticker.png', 'rb'), emojis=sticker_emoji)
             msg.reply_text(f"Sticker successfully added to [pack](t.me/addstickers/{packname})" +
                             f"\nEmoji is: {sticker_emoji}", parse_mode=ParseMode.MARKDOWN)
@@ -116,7 +116,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
                 makepack_internal(msg, user, open('kangsticker.png', 'rb'), sticker_emoji, bot, packname, packnum)
             elif e.message == "Sticker_png_dimensions":
                 im.save(kangsticker, "PNG")
-                bot.add_sticker_to_set(user_id=user.id, name=packname,
+                context.bot.add_sticker_to_set(user_id=user.id, name=packname,
                                         png_sticker=open('kangsticker.png', 'rb'), emojis=sticker_emoji)
                 msg.reply_text(f"Sticker successfully added to [pack](t.me/addstickers/{packname})" +
                                 f"\nEmoji is: {sticker_emoji}", parse_mode=ParseMode.MARKDOWN)
@@ -158,7 +158,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
                 im.thumbnail(maxsize)
             im.save(kangsticker, "PNG")
             msg.reply_photo(photo=open('kangsticker.png', 'rb'))
-            bot.add_sticker_to_set(user_id=user.id, name=packname,
+            context.bot.add_sticker_to_set(user_id=user.id, name=packname,
                                     png_sticker=open('kangsticker.png', 'rb'), emojis=sticker_emoji)
             msg.reply_text(f"Sticker successfully added to [pack](t.me/addstickers/{packname})" +
                             f"\nEmoji is: {sticker_emoji}", parse_mode=ParseMode.MARKDOWN)
@@ -171,7 +171,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
                 makepack_internal(msg, user, open('stolensticker.png', 'rb'), sticker_emoji, bot, packname, packnum)
             elif e.message == "Sticker_png_dimensions":
                 im.save(stolensticker, "PNG")
-                bot.add_sticker_to_set(user_id=user.id, name=packname,
+                context.bot.add_sticker_to_set(user_id=user.id, name=packname,
                                         png_sticker=open('stolensticker.png', 'rb'), emojis=sticker_emoji)
                 msg.reply_text("Sticker successfully added to [pack](t.me/addstickers/%s)" % packname + "\n" +
                             "Emoji is:" + " " + sticker_emoji, parse_mode=ParseMode.MARKDOWN)
