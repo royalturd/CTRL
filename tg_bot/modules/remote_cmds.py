@@ -85,8 +85,9 @@ RUNMUTE_ERRORS = {
 
 @run_async
 @bot_admin
-def rban(bot: Bot, update: Update, args: List[str]):
+def rban(update, context):
     message = update.effective_message
+    args = context.args
 
     if not args:
         message.reply_text("You don't seem to be referring to a chat/user.")
@@ -102,7 +103,7 @@ def rban(bot: Bot, update: Update, args: List[str]):
         return
 
     try:
-        chat = bot.get_chat(chat_id.split()[0])
+        chat = context.bot.get_chat(chat_id.split()[0])
     except BadRequest as excp:
         if excp.message == "Chat not found":
             message.reply_text("Chat not found! Make sure you entered a valid chat ID and I'm part of that chat.")
@@ -152,8 +153,9 @@ def rban(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 @bot_admin
-def runban(bot: Bot, update: Update, args: List[str]):
+def runban(update, context):
     message = update.effective_message
+    args = context.args
 
     if not args:
         message.reply_text("You don't seem to be referring to a chat/user.")
@@ -169,7 +171,7 @@ def runban(bot: Bot, update: Update, args: List[str]):
         return
 
     try:
-        chat = bot.get_chat(chat_id.split()[0])
+        chat = context.bot.get_chat(chat_id.split()[0])
     except BadRequest as excp:
         if excp.message == "Chat not found":
             message.reply_text("Chat not found! Make sure you entered a valid chat ID and I'm part of that chat.")
@@ -219,8 +221,9 @@ def runban(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 @bot_admin
-def rkick(bot: Bot, update: Update, args: List[str]):
+def rkick(update, context):
     message = update.effective_message
+    args = context.args
 
     if not args:
         message.reply_text("You don't seem to be referring to a chat/user.")
@@ -236,7 +239,7 @@ def rkick(bot: Bot, update: Update, args: List[str]):
         return
 
     try:
-        chat = bot.get_chat(chat_id.split()[0])
+        chat = context.bot.get_chat(chat_id.split()[0])
     except BadRequest as excp:
         if excp.message == "Chat not found":
             message.reply_text("Chat not found! Make sure you entered a valid chat ID and I'm part of that chat.")
@@ -286,8 +289,9 @@ def rkick(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 @bot_admin
-def rmute(bot: Bot, update: Update, args: List[str]):
+def rmute(update, context):
     message = update.effective_message
+    args = context.args
 
     if not args:
         message.reply_text("You don't seem to be referring to a chat/user.")
@@ -337,7 +341,7 @@ def rmute(bot: Bot, update: Update, args: List[str]):
         return
 
     try:
-        bot.restrict_chat_member(chat.id, user_id, can_send_messages=False)
+        context.bot.restrict_chat_member(chat.id, user_id, can_send_messages=False)
         message.reply_text("Muted from the chat!")
     except BadRequest as excp:
         if excp.message == "Reply message not found":
@@ -353,8 +357,9 @@ def rmute(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 @bot_admin
-def runmute(bot: Bot, update: Update, args: List[str]):
+def runmute(update, context):
     message = update.effective_message
+    args = context.args
 
     if not args:
         message.reply_text("You don't seem to be referring to a chat/user.")
@@ -406,7 +411,7 @@ def runmute(bot: Bot, update: Update, args: List[str]):
         return
 
     try:
-        bot.restrict_chat_member(chat.id, int(user_id),
+        context.bot.restrict_chat_member(chat.id, int(user_id),
                                      can_send_messages=True,
                                      can_send_media_messages=True,
                                      can_send_other_messages=True,
