@@ -8,7 +8,7 @@ from tg_bot import dispatcher
 from requests import get
 
 @run_async
-def ud(bot: Bot, update: Update):
+def ud(update, context):
   message = update.effective_message
   text = message.text[len('/ud '):]
   results = get(f'http://api.urbandictionary.com/v0/define?term={text}').json()
