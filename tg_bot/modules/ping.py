@@ -21,7 +21,7 @@ from requests import get
 
 
 @run_async
-def ping(bot: Bot, update: Update):
+def ping(update, context):
     start_time = time.time()
     requests.get('https://api.telegram.org')
     end_time = time.time()
