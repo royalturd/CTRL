@@ -9,6 +9,7 @@ import requests
 from telegram import Message, Chat, Update, Bot, MessageEntity
 from telegram import ParseMode
 from tg_bot.modules.helper_funcs.alternate import send_message
+from tg_bot.modules.helper_funcs.alternate import typing_action, send_action
 
 
 
@@ -143,13 +144,14 @@ GMAPS_TIME = "https://maps.googleapis.com/maps/api/timezone/json"
 
 
 @run_async
-def runs(bot: Bot, update: Update):
+def runs(update, context):
     update.effective_message.reply_text(random.choice(RUN_STRINGS))
 
 
 @run_async
-def slap(bot: Bot, update: Update, args: List[str]):
+def slap(update, context):
     msg = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     # reply to correct message
     reply_text = msg.reply_to_message.reply_text if msg.reply_to_message else msg.reply_text
@@ -186,7 +188,7 @@ def slap(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def get_bot_ip(bot: Bot, update: Update):
+def get_bot_ip(update, context):
     """ Sends the bot's IP address, so as to be able to ssh in if necessary.
         OWNER ONLY.
     """
@@ -195,7 +197,9 @@ def get_bot_ip(bot: Bot, update: Update):
 
 
 @run_async
-def get_id(bot: Bot, update: Update, args: List[str]):
+@typing_action
+def get_id(update, context):
+    args = context.args
     user_id = extract_user(update.effective_message, args)
     if user_id:
         if update.effective_message.reply_to_message and update.effective_message.reply_to_message.forward_from:
@@ -209,7 +213,7 @@ def get_id(bot: Bot, update: Update, args: List[str]):
                     user1.id),
                 parse_mode=ParseMode.MARKDOWN)
         else:
-            user = bot.get_chat(user_id)
+            user = context.bot.get_chat(user_id)
             update.effective_message.reply_text("{}'s id is `{}`.".format(escape_markdown(user.first_name), user.id),
                                                 parse_mode=ParseMode.MARKDOWN)
     else:
@@ -220,17 +224,17 @@ def get_id(bot: Bot, update: Update, args: List[str]):
 
         else:
             update.effective_message.reply_text("This group's id is `{}`.".format(chat.id),
-                                                parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
-def info(bot: Bot, update: Update, args: List[str]):
+def info(update, context):
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat # type: Optional[Chat]
     user_id = extract_user(update.effective_message, args)
+    args = context.args
 
     if user_id:
-        user = bot.get_chat(user_id)
+        user = context.bot.get_chat(user_id)
 
     elif not msg.reply_to_message and not args:
         user = msg.from_user
@@ -291,11 +295,11 @@ def info(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def get_time(bot: Bot, update: Update, args: List[str]):
+def get_time(update, context):
         location = " ".join(args)
         if location.lower() == bot.first_name.lower():
             send_message(update.effective_message, "Its always banhammer time for me!")
-            bot.send_sticker(update.effective_chat.id, BAN_STICKER)
+            context.bot.send_sticker(update.effective_chat.id, BAN_STICKER)
             return
 
         res = requests.get('https://dev.virtualearth.net/REST/v1/timezone/?query={}&key={}'.format(location, MAPS_API))
@@ -316,7 +320,7 @@ def get_time(bot: Bot, update: Update, args: List[str]):
             
 
 @run_async
-def echo(bot: Bot, update: Update):
+def echo(update, context):
     args = update.effective_message.text.split(None, 1)
     message = update.effective_message
     if message.reply_to_message:
@@ -327,7 +331,7 @@ def echo(bot: Bot, update: Update):
 
 
 @run_async
-def gdpr(bot: Bot, update: Update):
+def gdpr(update, context):
     update.effective_message.reply_text("Deleting identifiable data...")
     for mod in GDPR:
         mod.__gdpr__(update.effective_user.id)
@@ -367,7 +371,7 @@ Keep in mind that your message <b>MUST</b> contain some text other than just a b
 
 
 @run_async
-def markdown_help(bot: Bot, update: Update):
+def markdown_help(update, context):
     update.effective_message.reply_text(MARKDOWN_HELP, parse_mode=ParseMode.HTML)
     update.effective_message.reply_text("Try forwarding the following message to me, and you'll see!")
     update.effective_message.reply_text("/save test This is a markdown test. _italics_, *bold*, `code`, "
@@ -375,7 +379,7 @@ def markdown_help(bot: Bot, update: Update):
                                         "[button2](buttonurl://google.com:same)")
 
 @run_async
-def reply_keyboard_remove(bot: Bot, update: Update):
+def reply_keyboard_remove(update, context):
     reply_keyboard = []
     reply_keyboard.append([
         ReplyKeyboardRemove(
@@ -385,7 +389,7 @@ def reply_keyboard_remove(bot: Bot, update: Update):
     reply_markup = ReplyKeyboardRemove(
         remove_keyboard=True
     )
-    old_message = bot.send_message(
+    old_message = context.bot.send_message(
         chat_id=update.message.chat_id,
         text='Hmmm, Trying...',
         reply_markup=reply_markup,
@@ -398,11 +402,11 @@ def reply_keyboard_remove(bot: Bot, update: Update):
 
 
 @run_async
-def stats(bot: Bot, update: Update):
+def stats(update, context):
     update.effective_message.reply_text("Current stats:\n" + "\n".join([mod.__stats__() for mod in STATS]))
 
 @run_async
-def stickerid(bot: Bot, update: Update):
+def stickerid(update, context):
     msg = update.effective_message
     if msg.reply_to_message and msg.reply_to_message.sticker:
         update.effective_message.reply_text("Hello " +
@@ -415,25 +419,25 @@ def stickerid(bot: Bot, update: Update):
                                             msg.from_user.id) + ", Please reply to sticker message to get id sticker",
                                             parse_mode=ParseMode.MARKDOWN)
 @run_async
-def getsticker(bot: Bot, update: Update):
+def getsticker(update, context):
     msg = update.effective_message
     chat_id = update.effective_chat.id
     if msg.reply_to_message and msg.reply_to_message.sticker:
-        bot.sendChatAction(chat_id, "typing")
+        context.bot.sendChatAction(chat_id, "typing")
         update.effective_message.reply_text("Hello " + "[{}](tg://user?id={})".format(msg.from_user.first_name,
                                             msg.from_user.id) + ", Please check the file you requested below."
                                             "\nPlease use this feature wisely!",
                                             parse_mode=ParseMode.MARKDOWN)
-        bot.sendChatAction(chat_id, "upload_document")
+        context.bot.sendChatAction(chat_id, "upload_document")
         file_id = msg.reply_to_message.sticker.file_id
-        newFile = bot.get_file(file_id)
+        newFile = context.bot.get_file(file_id)
         newFile.download('sticker.png')
-        bot.sendDocument(chat_id, document=open('sticker.png', 'rb'))
-        bot.sendChatAction(chat_id, "upload_photo")
-        bot.send_photo(chat_id, photo=open('sticker.png', 'rb'))
+        context.bot.sendDocument(chat_id, document=open('sticker.png', 'rb'))
+        context.bot.sendChatAction(chat_id, "upload_photo")
+        context.bot.send_photo(chat_id, photo=open('sticker.png', 'rb'))
         
     else:
-        bot.sendChatAction(chat_id, "typing")
+        context.bot.sendChatAction(chat_id, "typing")
         update.effective_message.reply_text("Hello " + "[{}](tg://user?id={})".format(msg.from_user.first_name,
                                             msg.from_user.id) + ", Please reply to sticker message to get sticker image",
                                             parse_mode=ParseMode.MARKDOWN)
