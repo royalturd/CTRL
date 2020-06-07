@@ -7,7 +7,7 @@ from tg_bot import dispatcher, updater, API_WEATHER
 from tg_bot.modules.disable import DisableAbleCommandHandler
 
 @run_async
-def weather(bot, update, args):
+def weather(update, context):
     if len(args) == 0:
         update.effective_message.reply_text("Write a location to check the weather.")
         return
@@ -15,7 +15,7 @@ def weather(bot, update, args):
     location = " ".join(args)
     if location.lower() == bot.first_name.lower():
         update.effective_message.reply_text("I will keep an eye on both happy and sad times!")
-        bot.send_sticker(update.effective_chat.id, BAN_STICKER)
+        context.bot.send_sticker(update.effective_chat.id, BAN_STICKER)
         return
 
     try:
