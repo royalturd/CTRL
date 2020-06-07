@@ -2,21 +2,18 @@ from io import BytesIO
 from time import sleep
 from typing import Optional
 
-from telegram import TelegramError, Chat, Message
-from telegram import Update, Bot
+from telegram import TelegramError, Chat
+from telegram import Update
 from telegram.error import BadRequest, Unauthorized
 from telegram.ext import MessageHandler, Filters, CommandHandler
 from telegram.ext.dispatcher import run_async
 
-
 import tg_bot.modules.sql.users_sql as sql
-from tg_bot import SUDO_USERS
-from tg_bot import escape_markdown
 from tg_bot import dispatcher, OWNER_ID, LOGGER
 from tg_bot.modules.helper_funcs.filters import CustomFilters
 
 USERS_GROUP = 4
-
+CHAT_GROUP = 10
 
 def get_user_id(username):
     # ensure valid userid
@@ -51,14 +48,14 @@ def get_user_id(username):
 
 
 @run_async
-def broadcast(bot: Bot, update: Update):
+def broadcast(update, context):
     to_send = update.effective_message.text.split(None, 1)
     if len(to_send) >= 2:
         chats = sql.get_all_chats() or []
         failed = 0
         for chat in chats:
             try:
-                bot.sendMessage(int(chat.chat_id), to_send[1])
+                context.bot.sendMessage(int(chat.chat_id), to_send[1])
                 sleep(0.1)
             except TelegramError:
                 failed += 1
@@ -69,7 +66,7 @@ def broadcast(bot: Bot, update: Update):
 
 
 @run_async
-def log_user(bot: Bot, update: Update):
+def log_user(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
 
@@ -90,7 +87,7 @@ def log_user(bot: Bot, update: Update):
 
 
 @run_async
-def chats(bot: Bot, update: Update):
+def chats(update, context):
     all_chats = sql.get_all_chats() or []
     chatfile = 'List of chats.\n'
     for chat in all_chats:
@@ -101,10 +98,13 @@ def chats(bot: Bot, update: Update):
         update.effective_message.reply_document(document=output, filename="chatlist.txt",
                                                 caption="Here is the list of chats in my database.")
 
-  
+@run_async
+def chat_checker(update, context):
+  if update.effective_message.chat.get_member(context.bot.id).can_send_messages == False:
+    context.bot.leaveChat(update.effective_message.chat.id)
 
 @run_async
-def rem_chat(bot: Bot, update: Update):
+def rem_chat(update: context):
     msg = update.effective_message
     chats = sql.get_all_chats()
     kicked_chats = 0
@@ -112,7 +112,7 @@ def rem_chat(bot: Bot, update: Update):
         id = chat.chat_id
         sleep(0.1) # Reduce floodwait
         try:
-            bot.get_chat(id, timeout=60)
+            context.bot.get_chat(id, timeout=60)
         except (BadRequest, Unauthorized):
             kicked_chats += 1
             sql.rem_chat(id)
@@ -121,17 +121,16 @@ def rem_chat(bot: Bot, update: Update):
     else:
         msg.reply_text("No chats had to be removed from the database!")
 
-        
 
 def __user_info__(user_id):
-    if user_id == dispatcher.bot.id:
+    if user_id == dispatcher.context.bot.id:
         return """I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."""
     num_chats = sql.get_user_num_chats(user_id)
     return """I've seen them in <code>{}</code> chats in total.""".format(num_chats)
 
 
 def __stats__():
-    return "{} users, across {} chats".format(sql.num_users(), sql.num_chats())
+    return "× {} users, across {} chats".format(sql.num_users(), sql.num_chats())
 
 
 def __migrate__(old_chat_id, new_chat_id):
@@ -146,10 +145,10 @@ BROADCAST_HANDLER = CommandHandler("broadcast", broadcast, filters=Filters.user(
 USER_HANDLER = MessageHandler(Filters.all & Filters.group, log_user)
 CHATLIST_HANDLER = CommandHandler("chatlist", chats, filters=CustomFilters.sudo_filter)
 DELETE_CHATS_HANDLER = CommandHandler("cleanchats", rem_chat, filters=Filters.user(OWNER_ID))
-
-
+CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.group, chat_checker)
 
 dispatcher.add_handler(USER_HANDLER, USERS_GROUP)
 dispatcher.add_handler(BROADCAST_HANDLER)
 dispatcher.add_handler(CHATLIST_HANDLER)
+dispatcher.add_handler(CHAT_CHECKER_HANDLER, CHAT_GROUP)
 dispatcher.add_handler(DELETE_CHATS_HANDLER)
