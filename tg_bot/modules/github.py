@@ -9,7 +9,7 @@ from requests import get
 
 
 @run_async
-def github(bot: Bot, update: Update):
+def github(update, context):
     message = update.effective_message
     text = message.text[len('/git '):]
     usr = get(f'https://api.github.com/users/{text}').json()
@@ -38,8 +38,9 @@ def github(bot: Bot, update: Update):
 
 
 @run_async
-def repo(bot: Bot, update: Update, args: [str]):
+def repo(update, context):
     message = update.effective_message
+    args = context.args
     text = message.text[len('/repo '):]
     usr = get(f'https://api.github.com/users/{text}/repos?per_page=40').json()
     reply_text = "*Repo*\n"
