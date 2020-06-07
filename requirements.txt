@@ -16,7 +16,7 @@ aiohttp>=2.2.5
 gTTS
 Pillow>=4.2.0
 translations
-zalgo_text
+telethon
 nltk
 pynewtonmath
 bs4
