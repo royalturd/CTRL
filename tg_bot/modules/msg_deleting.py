@@ -15,8 +15,10 @@ from tg_bot.modules.log_channel import loggable
 @run_async
 @user_admin
 @loggable
-def purge(bot: Bot, update: Update, args: List[str]) -> str:
+def purge(update, context):
     msg = update.effective_message  # type: Optional[Message]
+    args= context.args
+
     if msg.reply_to_message:
         user = update.effective_user  # type: Optional[User]
         chat = update.effective_chat  # type: Optional[Chat]
@@ -28,10 +30,10 @@ def purge(bot: Bot, update: Update, args: List[str]) -> str:
                 delete_to = msg.message_id - 1
             for m_id in range(delete_to, message_id - 1, -1):  # Reverse iteration over message ids
                 try:
-                    bot.deleteMessage(chat.id, m_id)
+                    context.bot.deleteMessage(chat.id, m_id)
                 except BadRequest as err:
                     if err.message == "Message can't be deleted":
-                        bot.send_message(chat.id, "Cannot delete all messages. The messages may be too old, I might "
+                        context.bot.send_message(chat.id, "Cannot delete all messages. The messages may be too old, I might "
                                                   "not have delete rights, or this might not be a supergroup.")
 
                     elif err.message != "Message to delete not found":
@@ -41,7 +43,7 @@ def purge(bot: Bot, update: Update, args: List[str]) -> str:
                 msg.delete()
             except BadRequest as err:
                 if err.message == "Message can't be deleted":
-                    bot.send_message(chat.id, "Cannot delete all messages. The messages may be too old, I might "
+                    context.bot.send_message(chat.id, "Cannot delete all messages. The messages may be too old, I might "
                                               "not have delete rights, or this might not be a supergroup.")
 
                 elif err.message != "Message to delete not found":
@@ -63,10 +65,12 @@ def purge(bot: Bot, update: Update, args: List[str]) -> str:
 @run_async
 @user_admin
 @loggable
-def del_message(bot: Bot, update: Update) -> str:
+def del_message(update, context):
     if update.effective_message.reply_to_message:
         user = update.effective_user  # type: Optional[User]
         chat = update.effective_chat  # type: Optional[Chat]
+        args = context.args
+
         if can_delete(chat, bot.id):
             update.effective_message.reply_to_message.delete()
             update.effective_message.delete()
