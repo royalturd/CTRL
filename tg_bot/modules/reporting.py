@@ -18,9 +18,10 @@ REPORT_GROUP = 5
 
 @run_async
 @user_admin
-def report_setting(bot: Bot, update: Update, args: List[str]):
+def report_setting(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     if chat.type == chat.PRIVATE:
         if len(args) >= 1:
@@ -51,7 +52,7 @@ def report_setting(bot: Bot, update: Update, args: List[str]):
 @run_async
 @user_not_admin
 @loggable
-def report(bot: Bot, update: Update) -> str:
+def report(update, context):
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -122,7 +123,7 @@ def report(bot: Bot, update: Update) -> str:
                 all_admins.append("<a href='tg://user?id={}'>⁣</a>".format(admin.user.id))
                 try:
                     if not chat.type == Chat.SUPERGROUP:
-                        bot.send_message(admin.user.id,
+                        context.bot.send_message(admin.user.id,
                                          msg + link,
                                          parse_mode=ParseMode.MARKDOWN)
 
@@ -135,7 +136,7 @@ def report(bot: Bot, update: Update) -> str:
                                 message.forward(admin.user.id)
 
                     if not chat.username:
-                        bot.send_message(admin.user.id,
+                        context.bot.send_message(admin.user.id,
                                          msg + link,
                                          parse_mode=ParseMode.MARKDOWN)
 
@@ -148,7 +149,7 @@ def report(bot: Bot, update: Update) -> str:
                                 message.forward(admin.user.id)
 
                     if chat.username and chat.type == Chat.SUPERGROUP:
-                        bot.send_message(admin.user.id,
+                        context.bot.send_message(admin.user.id,
                                          msg + link,
                                          parse_mode=ParseMode.MARKDOWN,
                                          reply_markup=reply_markup)
@@ -166,7 +167,7 @@ def report(bot: Bot, update: Update) -> str:
                 except BadRequest as excp:  # TODO: cleanup exceptions
                     LOGGER.exception("Exception while reporting user")
 
-        bot.send_message(chat.id, tld(update.effective_message, "⚠️ {} <b>User has been reported to the chat admins!</b>{}").format(
+        context.bot.send_message(chat.id, tld(update.effective_message, "⚠️ {} <b>User has been reported to the chat admins!</b>{}").format(
                                             mention_html(reported_user.id, reported_user.first_name),
                                             "".join(all_admins)), parse_mode=ParseMode.MARKDOWN, reply_to_message_id=message.reply_to_message.message_id)
         return msg
@@ -184,28 +185,28 @@ def buttons(bot: Bot, update):
     chat = update.effective_chat
     if splitter[1] == "kick":
         try:
-            bot.kickChatMember(splitter[0], splitter[2])
-            bot.unbanChatMember(splitter[0], splitter[2])
+            context.bot.kickChatMember(splitter[0], splitter[2])
+            context.bot.unbanChatMember(splitter[0], splitter[2])
             query.answer("✅ Succesfully kicked")
             return ""
         except Exception as err:
             query.answer("❎ Failed to kick")
-            bot.sendMessage(text="Error: {}".format(err),
+            context.bot.sendMessage(text="Error: {}".format(err),
                             chat_id=query.message.chat_id,
                             parse_mode=ParseMode.HTML)
     elif splitter[1] == "banned":
         try:
-            bot.kickChatMember(splitter[0], splitter[2])
+            context.bot.kickChatMember(splitter[0], splitter[2])
             query.answer("✅  Succesfully Banned")
             return ""
         except Exception as err:
-            bot.sendMessage(text="Error: {}".format(err),
+            context.bot.sendMessage(text="Error: {}".format(err),
                             chat_id=query.message.chat_id,
                             parse_mode=ParseMode.HTML)
             query.answer("❎ Failed to ban")
     elif splitter[1] == "delete":
         try:
-            bot.deleteMessage(splitter[0], splitter[3])
+            context.bot.deleteMessage(splitter[0], splitter[3])
             query.answer("✅ Message Deleted")
             return ""
         except Exception as err:
