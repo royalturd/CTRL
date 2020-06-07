@@ -15,8 +15,9 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 BASE_URL = 'https://del.dog'
 
 @run_async
-def paste(bot: Bot, update: Update, args: List[str]):
+def paste(update, context):
     message = update.effective_message
+    args = context.args
 
     if message.reply_to_message:
         data = message.reply_to_message.text
@@ -46,8 +47,9 @@ def paste(bot: Bot, update: Update, args: List[str]):
     update.effective_message.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
 
 @run_async
-def get_paste_content(bot: Bot, update: Update, args: List[str]):
+def get_paste_content(update, context):
     message = update.effective_message
+    args = context.args
 
     if len(args) >= 1:
         key = args[0]
@@ -79,8 +81,9 @@ def get_paste_content(bot: Bot, update: Update, args: List[str]):
     update.effective_message.reply_text(r.text)
 
 @run_async
-def get_paste_stats(bot: Bot, update: Update, args: List[str]):
+def get_paste_stats(update, context):
     message = update.effective_message
+    args = context.args
 
     if len(args) >= 1:
         key = args[0]
