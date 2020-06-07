@@ -13,9 +13,10 @@ from tg_bot.modules.helper_funcs.extraction import extract_user
 
 
 @run_async
-def about_me(bot: Bot, update: Update, args: List[str]):
+def about_me(update, context):
     message = update.effective_message  # type: Optional[Message]
     user_id = extract_user(message, args)
+    args = context.args
 
     if user_id:
         user = bot.get_chat(user_id)
@@ -35,7 +36,7 @@ def about_me(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def set_about_me(bot: Bot, update: Update):
+def set_about_me(update, context):
     message = update.effective_message  # type: Optional[Message]
     user_id = message.from_user.id
     text = message.text
@@ -50,8 +51,9 @@ def set_about_me(bot: Bot, update: Update):
 
 
 @run_async
-def about_bio(bot: Bot, update: Update, args: List[str]):
+def about_bio(update, context):
     message = update.effective_message  # type: Optional[Message]
+    args = context.args
 
     user_id = extract_user(message, args)
     if user_id:
@@ -72,7 +74,7 @@ def about_bio(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def set_about_bio(bot: Bot, update: Update):
+def set_about_bio(update, context):
     message = update.effective_message  # type: Optional[Message]
     sender = update.effective_user  # type: Optional[User]
     if message.reply_to_message:
