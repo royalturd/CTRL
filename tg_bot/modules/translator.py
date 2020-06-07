@@ -13,7 +13,7 @@ from googletrans import Translator
 
 
 @run_async
-def totranslate(bot: Bot, update: Update):
+def totranslate(update, context):
 	msg = update.effective_message
 	chat_id = update.effective_chat.id
 	"""
