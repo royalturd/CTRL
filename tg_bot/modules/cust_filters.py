@@ -67,7 +67,7 @@ def list_handlers(update, context):
 		return
 
 	for keyword in all_handlers:
-		entry = " - {}\n".format(escape_markdown(keyword))
+		entry = " × `{}`\n".format(escape_markdown(keyword))
 		if len(entry) + len(filter_list) > telegram.MAX_MESSAGE_LENGTH:
 			send_message(update.effective_message, filter_list.format(chat_name), parse_mode=telegram.ParseMode.MARKDOWN)
 			filter_list = entry
@@ -163,11 +163,11 @@ def filters(update, context):
 		send_message(update.effective_message, "Invalid filter!")
 		return
 
-	sql.new_add_filter(chat_id, keyword, text, file_type, file_id, buttons)
+	add = addnew_filter(update, chat_id, keyword, text, file_type, file_id, buttons)
 	# This is an old method
 	# sql.add_filter(chat_id, keyword, content, is_sticker, is_document, is_image, is_audio, is_voice, is_video, buttons)
 
-	send_message(update.effective_message, "Saved filter '{}' in *{}*!".format(keyword, chat_name), parse_mode=telegram.ParseMode.MARKDOWN)
+	if add == True: send_message(update.effective_message, "Saved filter '{}' in *{}*!".format(keyword, chat_name), parse_mode=telegram.ParseMode.MARKDOWN)
 	raise DispatcherHandlerStop
 
 
@@ -232,9 +232,9 @@ def reply_filter(update, context):
 				if filt.reply_text:
 					valid_format = escape_invalid_curly_brackets(filt.reply_text, VALID_WELCOME_FORMATTERS)
 					if valid_format:
-						filtext = valid_format.format(first=message.from_user.first_name,
-													  last=message.from_user.last_name or message.from_user.first_name,
-													  fullname=" ".join([message.from_user.first_name, message.from_user.last_name] if message.from_user.last_name else [message.from_user.first_name]), username="@" + escape(message.from_user.username) if message.from_user.username else mention_html(message.from_user.id, message.from_user.first_name), mention=message.from_user.mention_html(), chatname=message.chat.title if message.chat.type != "private" else message.from_user.first_name, id=message.from_user.id)
+						filtext = valid_format.format(first=escape(message.from_user.first_name),
+													  last=escape(message.from_user.last_name or message.from_user.first_name),
+													  fullname=" ".join([escape(message.from_user.first_name), escape(message.from_user.last_name)] if message.from_user.last_name else [escape(message.from_user.first_name)]), username="@" + escape(message.from_user.username) if message.from_user.username else mention_html(message.from_user.id, message.from_user.first_name), mention=mention_html(message.from_user.id, message.from_user.first_name), chatname=escape(message.chat.title) if message.chat.type != "private" else escape(message.from_user.first_name), id=message.from_user.id)
 					else:
 						filtext = ""
 				else:
@@ -350,7 +350,7 @@ def rmall_filters(update, context):
 
     return msg.reply_text(f"Cleaned {count} filters in {chat.title}")
 
-
+# NOT ASYNC NOT A HANDLER
 def get_exception(excp, filt, chat):
 	if excp.message == "Unsupported url protocol":
 		return "You seem to be trying to use the URL protocol which is not supported. Telegram does not support key for multiple protocols, such as tg: //. Please try again!"
@@ -361,6 +361,16 @@ def get_exception(excp, filt, chat):
 		LOGGER.exception("Could not parse filter %s in chat %s", str(filt.keyword), str(chat.id))
 		return "This data could not be sent because it is incorrectly formatted."
 
+# NOT ASYNC NOT A HANDLER
+def addnew_filter(update, chat_id, keyword, text, file_type, file_id, buttons):
+    msg = update.effective_message
+    totalfilt = sql.get_chat_triggers(chat_id)
+    if len(totalfilt) >= 50: # Idk why i made this like function....
+       msg.reply_text("You can't have more that fifty filters at once! try removing some before adding new filters.")
+       return False
+    else:
+       sql.new_add_filter(chat_id, keyword, text, file_type, file_id, buttons)
+       return True
 
 def __stats__():
 	return "× {} filters, across {} chats.".format(sql.num_filters(), sql.num_chats())
@@ -383,23 +393,21 @@ def __chat_settings__(chat_id, user_id):
 
 
 __help__ = """
-Make your chat more lively with filters; The bot will reply to certain words!
-Filters are case insensitive; every time someone says your trigger words, {} will reply something else! can be used to create your own commands, if desired.
- - /filters: list all active filters in this chat.
+ × /filters: List all active filters saved in the chat.
+
 *Admin only:*
- - /filter <keyword> <reply message>: Every time someone says "word", the bot will reply with "sentence". For multiple word filters, quote the first word.
- - /stop <filter keyword>: stop that filter.
+ × /filter <keyword> <reply message>: Add a filter to this chat. The bot will now reply that message whenever 'keyword'\
+is mentioned. If you reply to a sticker with a keyword, the bot will reply with that sticker. NOTE: all filter \
+keywords are in lowercase. If you want your keyword to be a sentence, use quotes. eg: /filter "hey there" How you \
+doin?
+ × /stop <filter keyword>: Stop that filter.
+
 *Chat creator only:*
- - /rmallfilter: Stop all chat filters at once.
-"""
- 
- An example of how to set a filter would be via:
-`/filter hello Hello there! How are you?`
-A multiword filter could be set via:
-`/filter "hello friend" Hello back! Long time no see!`
-If you want to save an image, gif, or sticker, or any other data, do the following:
-`/filter word while replying to a sticker or whatever data you'd like. Now, every time someone mentions "word", that sticker will be sent as a reply.`
-Now, anyone saying "hello" will be replied to with "Hello there! How are you?".
+ × /rmallfilter: Stop all chat filters at once.
+
+*Note*: Filters also support markdown formatters like: {first}, {last} etc.. and buttons.
+Check `/markdownhelp` to know more!
+
 """
 
 __mod_name__ = "Filters"
