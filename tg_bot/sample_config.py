@@ -38,6 +38,7 @@ class Config(object):
     API_OPENWEATHER = False #Get API_OPENWEATHER FROM OFFICAL SITE https://da.gd/VAW3
     TEMPORARY_DATA = None # Temporary data for backup module, use int number
     MAPS_API = ""
+    SPAMWATCH_API = None # Your SpamWatch token
 
 class Production(Config):
     LOGGER = False
