@@ -5,8 +5,9 @@ from tg_bot.modules.disable import DisableAbleCommandHandler
 from tg_bot import dispatcher
 
 @run_async
-def shout(bot: Bot, update: Update, args):
+def shout(update, context):
     msg = "```"
+    args = context.args
     text = " ".join(args)
     result = []
     result.append(' '.join([s for s in text]))
