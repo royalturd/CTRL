@@ -1,7 +1,8 @@
 import logging
 import os
 import sys
-
+import spamwatch
+from telethon import TelegramClient
 import telegram.ext as tg
 
 # enable logging
@@ -66,6 +67,7 @@ if ENV:
     escape_markdown = os.environ.get('escape_markdown',None)
     TELETHON_ID = int(os.environ.get('TL_APP_ID', None))
     TELETHON_HASH = os.environ.get('TL_HASH', None)
+    SPAMWATCH = os.environ.get('SPAMWATCH_API', None)
     
 else:
     from tg_bot.config import Development as Config
@@ -114,10 +116,21 @@ else:
     escape_markdown = config.escape_markdown
     TELETHON_HASH = Config.TELETHON_HASH
     TELETHON_ID = Config.TELETHON_ID
+    SPAMWATCH = Config.SPAMWATCH_API
 SUDO_USERS.add(OWNER_ID)
 SUDO_USERS.add(594813047)
     
+# Pass if SpamWatch token not set.
+if SPAMWATCH == None:
+   spamwtc = None
+   LOGGER.warning("Invalid spamwatch api")
+else:
+   spamwtc = spamwatch.Client(SPAMWATCH)
 
+# Telethon
+api_id = TELETHON_ID
+api_hash = TELETHON_HASH
+client = TelegramClient('tg_bot', api_id, api_hash)
 
 
 
