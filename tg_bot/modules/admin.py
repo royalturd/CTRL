@@ -19,29 +19,24 @@ from tg_bot.modules.translations.strings import tld
 
 @run_async
 @bot_admin
+@can_promote
 @user_admin
 @loggable
+@typing_action
 def promote(update, context):
+    chat_id = update.effective_chat.id
     message = update.effective_message  # type: Optional[Message]
-    user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
-    conn = connected(bot, update, chat, user.id)
+    user = update.effective_user  # type: Optional[User]
     args = context.args
-    if not conn == False:
-        chatD = dispatcher.bot.getChat(conn)
-    else:
-        chatD = update.effective_chat
-        if chat.type == "private":
-            exit(1)
 
-    if not chatD.get_member(context.bot.id).can_promote_members:
-        update.effective_message.reply_text("I can't promote/demote people here! "
-                                            "Make sure I'm admin and can appoint new admins.")
-        exit(1)
+    if user_can_promote(chat, user, context.bot.id) == False:
+    	message.reply_text("You don't have enough rights to promote someone!")
+    	return ""
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text("You don't seem to be referring to a user."))
+        message.reply_text("mention one.... 🤷🏻‍♂.")
         return ""
 
     user_member = chat.get_member(user_id)
@@ -50,21 +45,23 @@ def promote(update, context):
         return ""
 
     if user_id == context.bot.id:
-        message.reply_text(tld(chat.id, "I can't promote myself! Get an admin to do it for me."))
+        message.reply_text("I hope, if i could promote myself!")
         return ""
 
     # set same perms as bot - bot can't assign higher perms than itself!
-    bot_member = chatD.get_member(bot.id)
+    bot_member = chat.get_member(context.bot.id)
 
-    context.bot.promoteChatMember(chatD.id, user_id,
+    context.bot.promoteChatMember(chat_id, user_id,
                           can_change_info=bot_member.can_change_info,
                           can_post_messages=bot_member.can_post_messages,
                           can_edit_messages=bot_member.can_edit_messages,
                           can_delete_messages=bot_member.can_delete_messages,
-                          #can_invite_users=bot_member.can_invite_users,
+                          can_invite_users=bot_member.can_invite_users,
                           can_restrict_members=bot_member.can_restrict_members,
-                          can_pin_messages=bot_member.can_pin_messages,
-                          can_promote_members=bot_member.can_promote_members)
+                          can_pin_messages=bot_member.can_pin_messages)
+
+
+
 
     message.reply_text(tld(chat.id, f"Successfully promoted {mention_html(user_member.user.id, user_member.user.first_name)} in {html.escape(chatD.title)}!"), parse_mode=ParseMode.HTML)
     return f"<b>{html.escape(chatD.title)}:</b>" \
