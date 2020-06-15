@@ -65,8 +65,8 @@ if ENV:
     DEEPFRY_TOKEN = os.environ.get('DEEPFRY_TOKEN', "")
     TEMPORARY_DATA = os.environ.get('TEMPORARY_DATA', None)
     escape_markdown = os.environ.get('escape_markdown',None)
-    TELETHON_ID = int(os.environ.get('TL_APP_ID', None))
-    TELETHON_HASH = os.environ.get('TL_HASH', None)
+    TELETHON_ID = int(os.environ.get('TELETHON_ID', None))
+    TELETHON_HASH = os.environ.get('TELETHON_HASH', None)
     SPAMWATCH = os.environ.get('SPAMWATCH_API', None)
     
 else:
