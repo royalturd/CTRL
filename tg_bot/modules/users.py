@@ -104,7 +104,7 @@ def chat_checker(update, context):
     context.bot.leaveChat(update.effective_message.chat.id)
 
 @run_async
-def rem_chat(update: context):
+def rem_chat(bot: Bot, update: Update, remove: bool = False):
     msg = update.effective_message
     chats = sql.get_all_chats()
     kicked_chats = 0
