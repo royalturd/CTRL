@@ -58,11 +58,7 @@ def promote(update, context):
                           can_delete_messages=bot_member.can_delete_messages,
                           can_invite_users=bot_member.can_invite_users,
                           can_restrict_members=bot_member.can_restrict_members,
-                          can_pin_messages=bot_member.can_pin_messages)
-
-
-
-
+                          can_pin_messages=bot_member.can_pin_messages
     message.reply_text(tld(chat.id, f"Successfully promoted {mention_html(user_member.user.id, user_member.user.first_name)} in {html.escape(chatD.title)}!"), parse_mode=ParseMode.HTML)
     return f"<b>{html.escape(chatD.title)}:</b>" \
             "\n#PROMOTED" \
@@ -105,9 +101,6 @@ def demote(update, context):
         return ""
 
     try:
-
-
-
         context.bot.promoteChatMember(int(chatD.id), int(user_id),
                               can_change_info=False,
                               can_post_messages=False,
@@ -117,8 +110,8 @@ def demote(update, context):
                               can_restrict_members=False,
                               can_pin_messages=False,
                               can_promote_members=False)
-        message.reply_text(tld(chat.id, f"Successfully demoted in *{chatD.title}*!"), parse_mode=ParseMode.MARKDOWN)
-        return f"<b>{html.escape(chatD.title)}:</b>" \
+        message.reply_text(tld(chat.id, f"Successfully demoted {mention_html(user_member.user.id, user_member.user.first_name)} in {html.escape(chatD.title)}!"), parse_mode=ParseMode.HTML)
+    return f"<b>{html.escape(chatD.title)}:</b>" \
                 "\n#DEMOTED" \
                f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}" \
                f"\n<b>User:</b> {mention_html(user_member.user.id, user_member.user.first_name)}"
