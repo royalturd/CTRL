@@ -72,49 +72,42 @@ def promote(update, context):
 
 @run_async
 @bot_admin
+@can_promote
 @user_admin
 @loggable
+@typing_action
 def demote(update, context):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
     args = context.args
-    conn = connected(bot, update, chat, user.id)
-    if not conn == False:
-        chatD = dispatcher.context.bot.getChat(conn)
-    else:
-        chatD = update.effective_chat
-        if chat.type == "private":
-            exit(1)
- 
+
     if user_can_promote(chat, user, context.bot.id) == False:
     	message.reply_text("You don't have enough rights to demote someone!")
     	return ""
 
-    if not chatD.get_member(bot.id).can_promote_members:
-        update.effective_message.reply_text("I can't promote/demote people here! "
-                                            "Make sure I'm admin and can appoint new admins.")
-        exit(1)
-
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text("You don't seem to be referring to a user."))
+        message.reply_text("mention a user.... 🤷🏻‍♂.")
         return ""
 
-    user_member = chatD.get_member(user_id)
+    user_member = chat.get_member(user_id)
     if user_member.status == 'creator':
-        message.reply_text("This person CREATED the chat, how would I demote them?"))
+        message.reply_text("I'm not gonna demote Creator this group.... 🙄")
         return ""
 
     if not user_member.status == 'administrator':
-        message.reply_text("Can't demote what wasn't promoted!"))
+        message.reply_text("How I'm supposed to demote someone who is not even an admin!")
         return ""
 
     if user_id == context.bot.id:
-        message.reply_text("I can't demote myself!"))
+        message.reply_text("Yeahhh... Not gonna demote myself!")
         return ""
 
     try:
+
+
+
         context.bot.promoteChatMember(int(chatD.id), int(user_id),
                               can_change_info=False,
                               can_post_messages=False,
