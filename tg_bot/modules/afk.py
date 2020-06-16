@@ -12,7 +12,7 @@ from tg_bot.modules.sql import afk_sql as sql
 from tg_bot.modules.users import get_user_id
 
 from tg_bot.modules.helper_funcs.alternate import send_message
-import tg_bot.modules.helper_funcs.fun_strings as fun
+import tg_bot.modules.helper_funcs.afk_strings as afk
 
 AFK_GROUP = 7
 AFK_REPLY_GROUP = 8
@@ -27,7 +27,7 @@ def afk(update, context):
         reason = ""
 
     sql.set_afk(update.effective_user.id, reason)
-    afkstr = random.choice(fun.AFK)
+    afkstr = random.choice(afk.AFK)
     update.effective_message.reply_text(afkstr.format(update.effective_user.first_name))
 
 
@@ -40,7 +40,7 @@ def no_longer_afk(update, context):
 
     res = sql.rm_afk(user.id)
     if res:
-       noafkstr = random.choice(fun.NOAFK)
+       noafkstr = random.choice(afk.NOAFK)
        update.effective_message.reply_text(noafkstr.format(user.first_name))
 
 
@@ -74,7 +74,7 @@ def reply_afk(update, context):
                 valid, reason = sql.check_afk_status(user_id)
                 if valid:
                     if not reason:
-                        rplafkstr = random.choice(fun.AFKRPL)
+                        rplafkstr = random.choice(afk.AFKRPL)
                         res = rplafkstr.format(fst_name)
                     else:
                         res = f"<b>{fst_name}</b> is away from keyboard! says it's because of \n{reason}"
