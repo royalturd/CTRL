@@ -81,6 +81,16 @@ if is_module_loaded(FILENAME):
                  chat = update.effective_chat
                  return self.filters(update) and not sql.is_command_disabled(chat.id, self.friendly)
 
+class DisableAbleRegexHandler(RegexHandler):
+        def __init__(self, pattern, callback, friendly="", **kwargs):
+            super().__init__(pattern, callback, **kwargs)
+            DISABLE_OTHER.append(friendly or pattern)
+            self.friendly = friendly or pattern
+
+        def check_update(self, update):
+            chat = update.effective_chat
+            return super().check_update(update) and not sql.is_command_disabled(chat.id, self.friendly)
+
 
     @run_async
     @user_admin
@@ -261,3 +271,4 @@ It'll also allow you to autodelete them, stopping people from bluetexting.
 else:
     DisableAbleCommandHandler = CommandHandler
     DisableAbleMessageHandler = MessageHandler
+    DisableAbleRegexHandler = RegexHandler
