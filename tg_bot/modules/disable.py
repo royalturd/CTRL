@@ -1,8 +1,8 @@
-from typing import Union, Optional
+from typing import Union
 
 from future.utils import string_types
-from telegram import ParseMode, Update, Bot, Chat, User
-from telegram.ext import CommandHandler, Filters, MessageHandler
+from telegram import ParseMode, Update, Chat
+from telegram.ext import CommandHandler, MessageHandler
 from telegram.utils.helpers import escape_markdown
 
 from tg_bot import dispatcher
@@ -15,10 +15,10 @@ FILENAME = __name__.rsplit(".", 1)[-1]
 
 # If module is due to be loaded, then setup all the magical handlers
 if is_module_loaded(FILENAME):
-    from tg_bot.modules.helper_funcs.chat_status import user_admin, is_user_admin
+    from skylee.modules.helper_funcs.chat_status import user_admin, is_user_admin
     from telegram.ext.dispatcher import run_async
 
-    from tg_bot.modules.sql import disable_sql as sql
+    from skylee.modules.sql import disable_sql as sql
 
     DISABLE_CMDS = []
     DISABLE_OTHER = []
@@ -81,16 +81,6 @@ if is_module_loaded(FILENAME):
                  chat = update.effective_chat
                  return self.filters(update) and not sql.is_command_disabled(chat.id, self.friendly)
 
-class DisableAbleRegexHandler(RegexHandler):
-        def __init__(self, pattern, callback, friendly="", **kwargs):
-            super().__init__(pattern, callback, **kwargs)
-            DISABLE_OTHER.append(friendly or pattern)
-            self.friendly = friendly or pattern
-
-        def check_update(self, update):
-            chat = update.effective_chat
-            return super().check_update(update) and not sql.is_command_disabled(chat.id, self.friendly)
-
 
     @run_async
     @user_admin
@@ -103,14 +93,12 @@ class DisableAbleRegexHandler(RegexHandler):
         conn = connected(context.bot, update, chat, user.id, need_admin=True)
         if conn:
             chat = dispatcher.bot.getChat(conn)
-            chat_id = conn
             chat_name = dispatcher.bot.getChat(conn).title
         else:
             if update.effective_message.chat.type == "private":
                 send_message(update.effective_message, "This command meant to be used in group not in PM")
                 return ""
             chat = update.effective_chat
-            chat_id = update.effective_chat.id
             chat_name = update.effective_message.chat.title
 
         if len(args) >= 1:
@@ -209,14 +197,12 @@ class DisableAbleRegexHandler(RegexHandler):
         if conn:
             chat = dispatcher.bot.getChat(conn)
             chat_id = conn
-            chat_name = dispatcher.bot.getChat(conn).title
         else:
             if update.effective_message.chat.type == "private":
                 send_message(update.effective_message, "This command is meant to use in group not in PM")
                 return ""
             chat = update.effective_chat
             chat_id = update.effective_chat.id
-            chat_name = update.effective_message.chat.title
 
         text = build_curr_disabled(chat.id)
         send_message(update.effective_message, text, parse_mode=ParseMode.MARKDOWN)
@@ -271,4 +257,3 @@ It'll also allow you to autodelete them, stopping people from bluetexting.
 else:
     DisableAbleCommandHandler = CommandHandler
     DisableAbleMessageHandler = MessageHandler
-    DisableAbleRegexHandler = RegexHandler
