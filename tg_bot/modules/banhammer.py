@@ -419,13 +419,13 @@ An example of muting someone silently:
 
 __mod_name__ = "Banhammer"
 
-BAN_HANDLER = CustomCommandHandler(CMD_PREFIX, "ban", ban, filters=Filters.group)
-TEMPBAN_HANDLER = CustomCommandHandler(CMD_PREFIX, ["tban", "tempban"], temp_ban, filters=Filters.group)
-KICK_HANDLER = CustomCommandHandler(CMD_PREFIX, "kick", kick, filters=Filters.group)
-UNBAN_HANDLER = CustomCommandHandler(CMD_PREFIX, "unban", unban, filters=Filters.group)
-KICKME_HANDLER = DisableAbleCommandHandler(CMD_PREFIX, "kickme", kickme, filters=Filters.group)
-BANME_HANDLER = DisableAbleCommandHandler(CMD_PREFIX, "banme", banme, filters=Filters.group)
-SBAN_HANDLER = CustomCommandHandler(CMD_PREFIX, "sban", sban, filters=Filters.group)
+BAN_HANDLER = CommandHandler("ban", ban, pass_args=True, filters=Filters.group)
+TEMPBAN_HANDLER = CommandHandler("tban", "tempban"], temp_ban, pass_args=True, filters=Filters.group)
+KICK_HANDLER = CommandHandler("kick", kick, filters=Filters.group)
+UNBAN_HANDLER = CommandHandler("unban", unban, filters=Filters.group)
+KICKME_HANDLER = DisableAbleCommandHandler("kickme", kickme, filters=Filters.group)
+BANME_HANDLER = DisableAbleCommandHandler("banme", banme, filters=Filters.group)
+SBAN_HANDLER = DisableAbleCommandHandler("sban", sban, filters=Filters.group)
 
 dispatcher.add_handler(BAN_HANDLER)
 dispatcher.add_handler(TEMPBAN_HANDLER)
