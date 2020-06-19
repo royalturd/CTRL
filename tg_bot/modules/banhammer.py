@@ -10,7 +10,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, User
 
 from tg_bot import dispatcher, BAN_STICKER, LOGGER
 from tg_bot.modules.disable import DisableAbleCommandHandler
-from tg_bot_bot.modules.helper_funcs.handlers import CustomCommandHandler
+from tg_bot.modules.helper_funcs.handlers import CustomCommandHandler
 from tg_bot.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, \
     is_user_admin, is_user_in_chat, is_bot_admin
 from tg_bot.modules.helper_funcs.extraction import extract_user_and_text
