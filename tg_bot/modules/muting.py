@@ -425,13 +425,13 @@ __help__ = ""
 
 __mod_name__ = "Muting & Restricting"
 
-MUTE_HANDLER = CustomCommandHandler(CMD_PREFIX, "mute", mute, filters=Filters.group)
-SMUTE_HANDLER = CustomCommandHandler(CMD_PREFIX, "smute", smute, filters=Filters.group)
-UNMUTE_HANDLER = CustomCommandHandler(CMD_PREFIX, "unmute", unmute, filters=Filters.group)
-TEMPMUTE_HANDLER = CustomCommandHandler(CMD_PREFIX, ["tmute", "tempmute"], temp_mute, filters=Filters.group)
-TEMP_NOMEDIA_HANDLER = CustomCommandHandler(CMD_PREFIX, ["trestrict", "temprestrict"], temp_nomedia, filters=Filters.group)
-NOMEDIA_HANDLER = CustomCommandHandler(CMD_PREFIX, ["restrict", "nomedia"], nomedia, filters=Filters.group)
-MEDIA_HANDLER = CustomCommandHandler(CMD_PREFIX, "unrestrict", media, filters=Filters.group)
+MUTE_HANDLER = CommandHandler("mute", mute, filters=Filters.group)
+SMUTE_HANDLER = CommandHandler("smute", smute, filters=Filters.group)
+UNMUTE_HANDLER = CommandHandler("unmute", unmute, filters=Filters.group)
+TEMPMUTE_HANDLER = CommandHandler("tmute", "tempmute"], temp_mute, filters=Filters.group)
+TEMP_NOMEDIA_HANDLER = CommandHandler("trestrict", "temprestrict"], temp_nomedia, filters=Filters.group)
+NOMEDIA_HANDLER = CommandHandler("restrict", "nomedia"], nomedia, filters=Filters.group)
+MEDIA_HANDLER = CommandHandler("unrestrict", media, filters=Filters.group)
 
 dispatcher.add_handler(MUTE_HANDLER)
 dispatcher.add_handler(SMUTE_HANDLER)
