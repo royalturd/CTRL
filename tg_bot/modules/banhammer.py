@@ -420,7 +420,7 @@ An example of muting someone silently:
 __mod_name__ = "Banhammer"
 
 BAN_HANDLER = CommandHandler("ban", ban, pass_args=True, filters=Filters.group)
-TEMPBAN_HANDLER = CommandHandler("tban", "tempban, temp_ban, pass_args=True, filters=Filters.group)
+TEMPBAN_HANDLER = CommandHandler(["tban", "tempban], temp_ban, pass_args=True, filters=Filters.group)
 KICK_HANDLER = CommandHandler("kick", kick, filters=Filters.group)
 UNBAN_HANDLER = CommandHandler("unban", unban, filters=Filters.group)
 KICKME_HANDLER = DisableAbleCommandHandler("kickme", kickme, filters=Filters.group)
