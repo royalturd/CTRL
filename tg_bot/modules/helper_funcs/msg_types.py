@@ -36,6 +36,14 @@ def get_note_type(msg: Message):
         else:
             data_type = Types.TEXT
 
+   
+def get_filter_type(msg: Message):
+
+    if msg.text and len(msg.text.split()) >= 3:
+        content = None
+        text = msg.text.split(None, 2)[2]
+        data_type = Types.TEXT
+
     elif msg.reply_to_message:
         entities = msg.reply_to_message.parse_entities()
         msgtext = msg.reply_to_message.text or msg.reply_to_message.caption
