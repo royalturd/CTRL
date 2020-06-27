@@ -218,7 +218,7 @@ def error_handler(update, context):
     )
 
     # Finally, send the message
-    context.bot.send_message(chat_id=594813047, text=message, parse_mode=e=ParseMode.HTML)
+    context.bot.send_message(chat_id=594813047, text=message, parse_mode=ParseMode.HTML)
 
 @run_async
 def help_button(update, context):
