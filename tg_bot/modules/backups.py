@@ -62,8 +62,8 @@ def import_data(bot: Bot, update):
 			data = json.load(file)
 
 		try:
-			# If backup is from Monica
-			if data.get('bot_base') == "Monica":
+			# If backup is from Ctrl
+			if data.get('bot_base') == "Ctrl":
 				imp_notes = 0
 				NOT_IMPORTED = "This cannot be imported because from other bot."
 				NOT_IMPORTED_INT = 0
@@ -175,7 +175,7 @@ def import_data(bot: Bot, update):
 		except Exception:
 			msg.reply_text("An error occurred while recovering your data. The process failed. If you experience a problem with this, please ask in @ctrlsupport!\nThank you!")
 
-			LOGGER.exception("Imprt for the chat %s with the name %s failed.", str(chat.id), str(chat.title))
+			LOGGER.exception("Import for the chat %s with the name %s failed.", str(chat.id), str(chat.title))
 			return
 
 		# TODO: some of that link logic
