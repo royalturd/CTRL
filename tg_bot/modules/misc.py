@@ -235,9 +235,13 @@ def info(bot: Bot, update: Update, args: List[str]):
     elif not msg.reply_to_message and not args:
         user = msg.from_user
 
-    elif not msg.reply_to_message and (not args or (
-            len(args) >= 1 and not args[0].startswith("@") and not args[0].isdigit() and not msg.parse_entities(
-        [MessageEntity.TEXT_MENTION]))):
+    elif (
+        not msg.reply_to_message
+        and len(args) >= 1
+        and not args[0].startswith("@")
+        and not args[0].isdigit()
+        and not msg.parse_entities([MessageEntity.TEXT_MENTION])
+    ):
         msg.reply_text("I can't extract a user from this.")
         return
 
@@ -261,11 +265,11 @@ def info(bot: Bot, update: Update, args: List[str]):
     else:
         if user.id in SUDO_USERS:
             text += "\n\nThis person is one of my sudo users."
-                   
+
         else:
             if user.id in SUPPORT_USERS:
                 text += "\n\nThis person is one of my support users." \
-                        
+
 
             if user.id in WHITELIST_USERS:
                 text += "\n\nThis person has been whitelisted! " \
@@ -278,7 +282,7 @@ def info(bot: Bot, update: Update, args: List[str]):
         if "custom_title" in result.keys():
             custom_title = result['custom_title']
             text += f"\n\nThis user holds the title <b>{custom_title}</b> here."
-            
+
     for mod in USER_INFO:
         try:
             mod_info = mod.__user_info__(user.id).strip()
@@ -376,12 +380,9 @@ def markdown_help(bot: Bot, update: Update):
 
 @run_async
 def reply_keyboard_remove(bot: Bot, update: Update):
-    reply_keyboard = []
-    reply_keyboard.append([
-        ReplyKeyboardRemove(
+    reply_keyboard = [[ReplyKeyboardRemove(
             remove_keyboard=True
-        )
-    ])
+        )]]
     reply_markup = ReplyKeyboardRemove(
         remove_keyboard=True
     )
@@ -418,8 +419,8 @@ def stickerid(bot: Bot, update: Update):
 def getsticker(bot: Bot, update: Update):
     msg = update.effective_message
     chat_id = update.effective_chat.id
+    bot.sendChatAction(chat_id, "typing")
     if msg.reply_to_message and msg.reply_to_message.sticker:
-        bot.sendChatAction(chat_id, "typing")
         update.effective_message.reply_text("Hello " + "[{}](tg://user?id={})".format(msg.from_user.first_name,
                                             msg.from_user.id) + ", Please check the file you requested below."
                                             "\nPlease use this feature wisely!",
@@ -431,9 +432,8 @@ def getsticker(bot: Bot, update: Update):
         bot.sendDocument(chat_id, document=open('sticker.png', 'rb'))
         bot.sendChatAction(chat_id, "upload_photo")
         bot.send_photo(chat_id, photo=open('sticker.png', 'rb'))
-        
+
     else:
-        bot.sendChatAction(chat_id, "typing")
         update.effective_message.reply_text("Hello " + "[{}](tg://user?id={})".format(msg.from_user.first_name,
                                             msg.from_user.id) + ", Please reply to sticker message to get sticker image",
                                             parse_mode=ParseMode.MARKDOWN)

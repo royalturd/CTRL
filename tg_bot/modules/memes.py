@@ -21,7 +21,7 @@ from telegram.ext import Filters, MessageHandler, run_async
 from tg_bot import dispatcher, DEEPFRY_TOKEN
 from tg_bot.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHandler
 
-WIDE_MAP = dict((i, i + 0xFEE0) for i in range(0x21, 0x7F))
+WIDE_MAP = {i: i + 0xFEE0 for i in range(0x21, 0x7F)}
 WIDE_MAP[0x20] = 0x3000
 
 # D A N K modules by @deletescape vvv
@@ -70,12 +70,9 @@ def vapor(bot: Bot, update: Update, args: List[str]):
         else:
             noreply = True
             data = message.text.split(None, 1)[1]
-    elif message.reply_to_message:
+    else:
         noreply = False
         data = message.reply_to_message.text
-    else:
-        data = ''
-
     reply_text = str(data).translate(WIDE_MAP)
     if noreply:
         message.reply_text(reply_text)
@@ -209,11 +206,7 @@ def spongemocktext(bot: Bot, update: Update):
 @run_async
 def forbesify(bot: Bot, update: Update):
     message = update.effective_message
-    if message.reply_to_message:
-        data = message.reply_to_message.text
-    else:
-        data = ''
-
+    data = message.reply_to_message.text if message.reply_to_message else ''
     data = data.lower()
     accidentals = ['VB', 'VBD', 'VBG', 'VBN']
     reply_text = data.split()

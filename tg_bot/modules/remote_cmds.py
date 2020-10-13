@@ -394,10 +394,14 @@ def runmute(bot: Bot, update: Update, args: List[str]):
             return
         else:
             raise
-            
-    if is_user_in_chat(chat, user_id):
-       if member.can_send_messages and member.can_send_media_messages \
-          and member.can_send_other_messages and member.can_add_web_page_previews:
+
+    if (
+        is_user_in_chat(chat, user_id)
+        and member.can_send_messages
+        and member.can_send_media_messages
+        and member.can_send_other_messages
+        and member.can_add_web_page_previews
+    ):
         message.reply_text("This user already has the right to speak in that chat.")
         return
 

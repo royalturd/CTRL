@@ -8,8 +8,7 @@ from tg_bot import dispatcher
 def shout(bot: Bot, update: Update, args):
     msg = "```"
     text = " ".join(args)
-    result = []
-    result.append(' '.join([s for s in text]))
+    result = [' '.join([s for s in text])]
     for pos, symbol in enumerate(text[1:]):
         result.append(symbol + ' ' + '  ' * pos + symbol)
     result = list("\n".join(result))

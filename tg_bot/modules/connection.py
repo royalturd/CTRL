@@ -21,18 +21,15 @@ from tg_bot.modules.keyboard import keyboard
 @run_async
 def allow_connections(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
-    if chat.type != chat.PRIVATE:
-        if len(args) >= 1:
-            var = args[0]
-            print(var)
-            if (var == "no"):
-                sql.set_allow_connect_to_chat(chat.id, False)
-                update.effective_message.reply_text("Disabled connections to this chat for users")
-            elif(var == "yes"):
-                sql.set_allow_connect_to_chat(chat.id, True)
-                update.effective_message.reply_text("Enabled connections to this chat for users")
-            else:
-                update.effective_message.reply_text("Please enter on/yes/off/no in group!")
+    if chat.type != chat.PRIVATE and len(args) >= 1:
+        var = args[0]
+        print(var)
+        if (var == "no"):
+            sql.set_allow_connect_to_chat(chat.id, False)
+            update.effective_message.reply_text("Disabled connections to this chat for users")
+        elif(var == "yes"):
+            sql.set_allow_connect_to_chat(chat.id, True)
+            update.effective_message.reply_text("Enabled connections to this chat for users")
         else:
             update.effective_message.reply_text("Please enter on/yes/off/no in group!")
     else:
@@ -42,8 +39,8 @@ def allow_connections(bot: Bot, update: Update, args: List[str]) -> str:
 @run_async
 def connect_chat(bot, update, args):
     chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
     if update.effective_chat.type == 'private':
+        user = update.effective_user  # type: Optional[User]
         if len(args) >= 1:
             try:
                 connect_chat = int(args[0])
@@ -83,7 +80,7 @@ def connect_chat(bot, update, args):
                             number = 1
                         else:
                             print("Error")
-                    
+
                         print(history.updated)
                         print(number)
 
@@ -93,7 +90,7 @@ def connect_chat(bot, update, args):
                         sql.add_history(user.id, connect_chat, "0", "0", 2)
                     #Rebuild user's keyboard
                     keyboard(bot, update)
-                    
+
                 else:
                     update.effective_message.reply_text("Connection failed!")
             else:

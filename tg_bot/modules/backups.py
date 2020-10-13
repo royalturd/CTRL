@@ -331,9 +331,8 @@ def export_data(bot: Bot, update: Update, chat_data):
 	# Backing up
 	backup[chat_id] = {'bot': bot.id, 'hashes': {'info': {'rules': rules}, 'extra': notes, 'blacklist': bl, 'disabled': disabledcmd, 'locks': locked}}
 	baccinfo = json.dumps(backup, indent=4)
-	f=open("Ctrl{}.backup".format(chat_id), "w")
-	f.write(str(baccinfo))
-	f.close()
+	with open("Ctrl{}.backup".format(chat_id), "w") as f:
+		f.write(str(baccinfo))
 	bot.sendChatAction(current_chat_id, "upload_document")
 	tgl = time.strftime("%H:%M:%S - %d/%m/%Y", time.localtime(time.time()))
 	try:
@@ -347,17 +346,13 @@ def export_data(bot: Bot, update: Update, chat_data):
 # Temporary data
 def put_chat(chat_id, value, chat_data):
 	# print(chat_data)
-	if value == False:
-		status = False
-	else:
-		status = True
+	status = value != False
 	chat_data[chat_id] = {'backups': {"status": status, "value": value}}
 
 def get_chat(chat_id, chat_data):
 	# print(chat_data)
 	try:
-		value = chat_data[chat_id]['backups']
-		return value
+		return chat_data[chat_id]['backups']
 	except KeyError:
 		return {"status": False, "value": False}
 
