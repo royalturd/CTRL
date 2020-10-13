@@ -75,6 +75,7 @@ def about_bio(bot: Bot, update: Update, args: List[str]):
 def set_about_bio(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
     sender = update.effective_user  # type: Optional[User]
+    sender_id = update.effective_user.id
     if message.reply_to_message:
         repl_message = message.reply_to_message
         user_id = repl_message.from_user.id
