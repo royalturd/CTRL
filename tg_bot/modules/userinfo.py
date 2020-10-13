@@ -75,15 +75,14 @@ def about_bio(bot: Bot, update: Update, args: List[str]):
 def set_about_bio(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
     sender = update.effective_user  # type: Optional[User]
-    sender_id = update.effective_user.id
     if message.reply_to_message:
         repl_message = message.reply_to_message
         user_id = repl_message.from_user.id
         if user_id == message.from_user.id:
             message.reply_text("Are you looking to change your own ... ?? That 's it.")
             return
-        elif user_id == bot.id and sender_id not in OWNER_ID:
-            message.reply_text(" Only Bot Owner can change my information.")
+        elif user_id == bot.id and sender_id not in SUDO_USERS:
+            message.reply_text(" Only BOT Sudos can change my information.")
             return
         elif user_id == OWNER_ID:
             message.reply_text("You ain't setting my master bio LMAO😂.")
