@@ -81,8 +81,8 @@ def set_about_bio(bot: Bot, update: Update):
         if user_id == message.from_user.id:
             message.reply_text("Are you looking to change your own ... ?? That 's it.")
             return
-        elif user_id == bot.id and sender.id not in SUDO_USERS:
-            message.reply_text(" Only SUDO USERS can change my information.")
+        elif user_id == bot.id and sender.id not in OWNER_ID:
+            message.reply_text(" Only Bot Owner can change my information.")
             return
         elif user_id == OWNER_ID:
             message.reply_text("You ain't setting my master bio LMAO😂.")
