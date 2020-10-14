@@ -62,8 +62,8 @@ def import_data(bot: Bot, update):
 			data = json.load(file)
 
 		try:
-			# If backup is from Ctrl
-			if data.get('bot_base') == "Ctrl":
+			# If backup is not from C T R L
+			if data.get('bot_base') == "C T R L":
 				imp_notes = 0
 				NOT_IMPORTED = "This cannot be imported because from other bot."
 				NOT_IMPORTED_INT = 0
@@ -139,7 +139,7 @@ def import_data(bot: Bot, update):
 				return
 		except Exception as err:
 			msg.reply_text(tl(update.effective_message, "An error has occurred getting Ctrl backup!\nGo, ping [Support Chat](https://t.me/ctrlsupport) and ask if any solution of it!\n\nMaybe they can resolve your issue!"), parse_mode="markdown")
-			LOGGER.exception("An error when importing from Julie base!")
+			LOGGER.exception("An error when importing from Ctrl base!")
 			return
 
 		# only import one group
@@ -318,6 +318,8 @@ def export_data(bot: Bot, update: Update, chat_data):
 		if locks.url:
 			locked.append('url')
 		restr = locksql.get_restr(chat_id)
+		if restr.other:
+			locked.append('other')
 		if restr.messages:
 			locked.append('messages')
 		if restr.preview:
@@ -329,7 +331,7 @@ def export_data(bot: Bot, update: Update, chat_data):
 	# Backing up
 	backup[chat_id] = {'bot': bot.id, 'hashes': {'info': {'rules': rules}, 'extra': notes, 'blacklist': bl, 'disabled': disabledcmd, 'locks': locked}}
 	baccinfo = json.dumps(backup, indent=4)
-	f=open("Ctrl{}.backup".format(chat_id), "w")
+	f=open("CTRL{}.backup".format(chat_id), "w")
 	f.write(str(baccinfo))
 	f.close()
 	bot.sendChatAction(current_chat_id, "upload_document")
