@@ -305,7 +305,7 @@ def info(bot: Bot, update: Update, args: List[str]):
             result = result.json()["result"]
             if "custom_title" in result.keys():
                 custom_title = result["custom_title"]
-                text += f"\nThis user holds the title <b>{custom_title}</b> here."
+                text += f"\n\nThis user holds the title <b>{custom_title}</b> here."
     except BadRequest:
         pass
 
