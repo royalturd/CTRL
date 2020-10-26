@@ -14,7 +14,7 @@ from telegram import ParseMode
 from tg_bot.modules.helper_funcs.alternate import send_message, typing_action
 
 
-
+from telegram.error import BadRequest
 from telegram import ParseMode, ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
