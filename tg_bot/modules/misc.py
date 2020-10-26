@@ -297,13 +297,11 @@ def info(bot: Bot, update: Update, args: List[str]):
         )
 
     try:
-    user_member = chat.get_member(user.id)
-    if user_member.status == 'administrator':
-        result = requests.post(f"https://api.telegram.org/bot{TOKEN}/getChatMember?chat_id={chat.id}&user_id={user.id}")
-        result = result.json()["result"]
-        if "custom_title" in result.keys():
-            custom_title = result['custom_title']
-            text += f"\n\nThis user holds the title <b>{custom_title}</b> here."
+        memstatus = chat.get_member(user.id).status
+        if memstatus == "administrator" or memstatus == "creator":
+            result = bot.get_chat_member(chat.id, user.id)
+            if result.custom_title:
+                text += f"\n\nThis user has custom title <b>{result.custom_title}</b> in this chat."
     except BadRequest:
         pass
 
