@@ -1,7 +1,7 @@
 import html
 import locale
 import json
-import requests as r
+import requests
 import random, re
 from datetime import datetime
 from typing import Optional, List
