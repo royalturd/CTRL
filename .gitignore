@@ -4,5 +4,4 @@ tg_bot/config.py
 *.backup
 sticker.png
 kangsticker.png
-kangsticker.tgs
 kangsticker
