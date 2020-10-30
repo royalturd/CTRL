@@ -34,7 +34,7 @@ def addsudo(bot: Bot, update: Update, args: List[str]):
         file.write(str(user_id) + "\n")
     
     SUDO_USERS.append(user_id)
-    message.reply_text("Succefully Added To SUDO List!")
+    message.reply_text("Succefully Added To SUDO List! This will be reset when bot will restart btw")
         
     return ""
 
