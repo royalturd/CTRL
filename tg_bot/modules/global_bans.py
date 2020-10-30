@@ -140,11 +140,11 @@ def gban(bot: Bot, update: Update, args: List[str]):
             pass
 
     send_to_list(bot, SUDO_USERS, "Gban complete!")
-    message.reply_text("Done! {} has been globally banned.".format(mention_html(user_chat.id, user_chat.first_name)),
+    message.reply_text("Done! Sometimes, Some simps needs to be learn a lesson, This is why I am here ! This retard  {} has been globally banned.".format(mention_html(user_chat.id, user_chat.first_name)),
                        parse_mode=ParseMode.HTML)
 
     try:
-        bot.send_message(user_id, "You've been globally banned from all groups where I am admin. If this is a mistake, you can appeal your Gban @CtrlSupport",parse_mode=ParseMode.HTML)
+        bot.send_message(user_id, "You've been globally banned from all groups where I am admin. If this is a mistake, you can appeal your Gban @RoyalTurd",parse_mode=ParseMode.HTML)
     except:
         pass #Bot either blocked or never started by user
 
