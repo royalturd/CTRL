@@ -74,7 +74,7 @@ def ban(bot: Bot, update: Update, args: List[str]) -> str:
     
 
     if user_id == OWNER_ID:
-        message.reply_text("Haha, you know that I'm not gonna ban my boss")
+        message.reply_text("Haha, Dude stop trying to ban my boss you RETARD ")
         return ""
     if is_user_ban_protected(chat, user_id, member):
         message.reply_text("I really wish I could ban admins...")
@@ -91,7 +91,7 @@ def ban(bot: Bot, update: Update, args: List[str]) -> str:
                                      mention_html(member.user.id, member.user.first_name))
     
 
-    reply = "User {} was 🔨banned by {} in {}.".format(mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name), chat.title)
+    reply = "User {} was banned by {} in {}.".format(mention_html(member.user.id, member.user.first_name), mention_html(user.id, user.first_name), chat.title)
     if reason:
         log += "\n<b>Reason:</b> {}".format(reason)
         reply += "\n<b>Reason:</b> {}".format(reason)
