@@ -30,7 +30,7 @@
       "DONATION_LINK": {
          "description": "Optional: link where you would like to receive donations.",
          "required": false,
-         "value": "https://www.paypal.me/PaulSonOfLars"
+         "value": "Go outside and help the needy ppls"
       },
       "ENV": {
          "description": "Setting this to ANYTHING will enable environment variables.",
@@ -82,5 +82,5 @@
       "ctrl"
    ],
    "name": "CTRL",
-   "repository": "https://github.com/AVATARX0TIC/CTRL"
+   "repository": "https://github.com/royalturd/CTRL"
 }

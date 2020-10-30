@@ -168,7 +168,7 @@ def send_start(bot, update):
 
     keyboard = [[
         InlineKeyboardButton(text=tld(chat.id, 'Support Group'),
-                             url="https://t.me/ctrlsupport")
+                             url="https://t.me/pixelated_juvenilediscussions")
         ]]
                            
     keyboard += [[
